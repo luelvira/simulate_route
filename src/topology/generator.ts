@@ -25,6 +25,7 @@ export function generateScenario(params: {
   cols: number,
   entryCount: number,
   exitCount: number,
+  cycleRatio?: number,
 }): Scenario {
   if (!areValidParameters(params))
     throw new RangeError(
@@ -72,7 +73,7 @@ export function generateScenario(params: {
     }
   }
 
-  const extraCount = Math.round(candidates.length * CYCLE_RATIO);
+  const extraCount = Math.round(candidates.length * (params.cycleRatio ?? CYCLE_RATIO));
   for (const [a, b] of shuffle(candidates).slice(0, extraCount)) addRoad(a, b);
 
 
