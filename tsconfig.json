@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "DOM", "WebWorker"],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "types": ["vitest/globals"],
+    "paths": { "@/*": ["./src/*"] },
+    
+  },
+  "include": ["src/**/*.ts", "e2e", "playwright.config.ts"],
+}
