@@ -1,9 +1,6 @@
-import { generateScenario } from "./topology/generator";
+import './style.css';
+import { generateRoadMap } from './topology/roadMap';
+import { renderRoadMap } from './topology/render';
 
-
-const scenario = generateScenario({rows: 8, cols: 12, entryCount: 3, exitCount: 2});
-
-console.log(scenario.entries); // 3 entradas
-console.log(scenario.exits);   // 2 salidas
-console.log(scenario.nodes);   // 96 intersecciones
-console.log(scenario.roads);   // Carreteras existentes
+const scenario = generateRoadMap({ rows: 18, cols: 24, entryCount: 12, exitCount: 4, blockSize: 7, seed: 47 });
+renderRoadMap(document.getElementById('app')!, scenario);
