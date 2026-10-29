@@ -1,9 +1,12 @@
 export type NodeId = `r${number}c${number}`;
 
+export type NodeKind = "intersection" | "fork" | "dead-end" | "roundabout";
+
 export interface Intersection {
   id: NodeId;
   row: number;
   col: number;
+  kind?: NodeKind;
 }
 
 export interface Road {
@@ -11,6 +14,9 @@ export interface Road {
   from: NodeId;
   to: NodeId;
   cost: number;
+  oneWay?: boolean;
+  speed?: number; // tiles per time unit, defaults to the max speed
+  path?: [number, number][];
 }
 
 export interface Scenario {
