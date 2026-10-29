@@ -1,4 +1,3 @@
-import { shuffler } from 'd3';
 import { edgeKey, Intersection, NodeId, nodeId, Road, Scenario } from './types';
 
 const CYCLE_RATIO = 0.85;
