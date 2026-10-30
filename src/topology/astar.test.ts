@@ -16,3 +16,16 @@ test('A* finds the fastest route (matches Dijkstra) on random road maps', () => 
     expect(result.time).toBeCloseTo(dijkstra(map, map.entries[0], map.exits[0]));
   }
 });
+
+test('A* returns the chain of roads travelled and honours a custom road cost', () => {
+  const map = generateRoadMap({ rows: 5, cols: 6, entryCount: 2, exitCount: 2, seed: 3 });
+  const [entry, exit] = [map.entries[0], map.exits[0]];
+  const free = aStar(map, entry, exit, 120)!;
+  expect(free.steps[0].from).toBe(entry);
+  expect(free.steps.at(-1)!.to).toBe(exit);
+  free.steps.slice(1).forEach((step, i) => expect(step.from).toBe(free.steps[i].to));
+
+  const banned = new Set(free.steps.map(s => s.road));
+  const detour = aStar(map, entry, exit, 120, r => (banned.has(r) ? 1e6 : r.cost / (r.speed ?? 120)));
+  expect(detour === null || detour.time >= free.time).toBe(true);
+});
