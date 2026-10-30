@@ -1,20 +1,9 @@
-import { SimulationConfig, listConfigs, loadConfig, saveConfig } from './configStorage';
+import { DEFAULT_CONFIG, SimulationConfig, listConfigs, loadConfig, parseConfig, saveConfig } from './configStorage';
 
-const FIELDS: (keyof SimulationConfig)[] = [
-  'rows', 'cols', 'entryCount', 'exitCount', 'blockSize',
-  'seed', 'cycleRatio', 'roundaboutRatio', 'vehicles',
-];
+const FIELDS = Object.keys(DEFAULT_CONFIG) as (keyof SimulationConfig)[];
 
-const INT_FIELDS = new Set<keyof SimulationConfig>([
-  'rows', 'cols', 'entryCount', 'exitCount', 'blockSize', 'seed', 'vehicles',
-]);
-
-function readConfig(form: HTMLFormElement): SimulationConfig {
-  const data = new FormData(form);
-  return Object.fromEntries(FIELDS.map((field) => {
-    const value = Number(data.get(field) ?? 0);
-    return [field, INT_FIELDS.has(field) ? Math.round(value) : value];
-  })) as unknown as SimulationConfig;
+export function readConfig(form: HTMLFormElement): SimulationConfig {
+  return parseConfig(new FormData(form));
 }
 
 function writeConfig(form: HTMLFormElement, config: SimulationConfig): void {

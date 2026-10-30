@@ -1,7 +1,7 @@
 import './style.css';
 import { generateRoadMap } from './topology/roadMap';
 import { renderRoadMap } from './topology/render';
-import { initConfigControls } from './ui/configControls';
+import { initConfigControls, readConfig } from './ui/configControls';
 import { initIcons } from './ui/icons';
 import { initPanels } from './ui/panels';
 import { initPresentationMode } from './ui/presentationMode';
@@ -11,8 +11,8 @@ initIcons();
 initPresentationMode();
 
 const scenarioForm = document.getElementById('scenario-form') as HTMLFormElement;
-scenarioForm.addEventListener('submit', (event) => event.preventDefault());
+scenarioForm.addEventListener('submit', (event: SubmitEvent) => {
+  event.preventDefault();
+  renderRoadMap(document.getElementById('app')!, generateRoadMap(readConfig(scenarioForm)));
+});
 initConfigControls(scenarioForm);
-
-const scenario = generateRoadMap({ rows: 18, cols: 24, entryCount: 12, exitCount: 4, blockSize: 7, seed: 47 });
-renderRoadMap(document.getElementById('app')!, scenario);
