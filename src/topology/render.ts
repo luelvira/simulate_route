@@ -6,6 +6,7 @@ const TILE = 24; // px per tile
 
 /** Draws the road map as a city plan: asphalt roads with rounded curves, lane markings, roundabouts and junctions. */
 export function renderRoadMap(container: HTMLElement, scenario: Scenario): void {
+  container.innerHTML = '';
   const at = (v: number): number => (v + 0.5) * TILE;
   const svg = d3.select(container).append('svg')
     .attr('viewBox', `0 0 ${scenario.cols * TILE} ${scenario.rows * TILE}`)
@@ -44,4 +45,17 @@ export function renderRoadMap(container: HTMLElement, scenario: Scenario): void 
     .attr('r', n => (entries.has(n.id) || exits.has(n.id) ? TILE * 0.4 : TILE * 0.2))
     .attr('fill', n => (entries.has(n.id) ? '#2e7d32' : exits.has(n.id) ? '#c62828' : '#5c6168'))
     .append('title').text(n => `${n.id} · ${n.kind}`);
+}
+
+/** Draws (or moves) one dot per vehicle at its tile position; positions are keyed by vehicle id. */
+export function renderVehicles(container: HTMLElement, positions: [number, [number, number]][]): void {
+  const svg = d3.select(container).select<SVGSVGElement>('svg');
+  const at = (v: number): number => (v + 0.5) * TILE;
+  let layer = svg.select<SVGGElement>('g.vehicles');
+  if (layer.empty()) layer = svg.append('g').attr('class', 'vehicles');
+  layer.selectAll<SVGCircleElement, [number, [number, number]]>('circle')
+    .data(positions, d => d[0])
+    .join(enter => enter.append('circle').attr('r', TILE * 0.9)
+      .attr('fill', '#1565c0').attr('stroke', '#fff').attr('stroke-width', 4))
+    .attr('cx', ([, [, col]]) => at(col)).attr('cy', ([, [row]]) => at(row));
 }

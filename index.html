@@ -21,13 +21,20 @@
       <button type="button" id="btn-restart" class="btn">Reiniciar</button>
       <button type="reset" form="scenario-form" class="btn btn-ghost">Restablecer</button>
       <label>Velocidad
-        <select aria-label="Velocidad de simulación">
-          <option value="15">x300</option>
-          <option value="60">x1200</option>
-          <option value="180">x3600</option>
+        <select id="sim-speed" aria-label="Velocidad de simulación">
+          <option value="15">x15</option>
+          <option value="60" selected>x60</option>
+          <option value="180">x180</option>
         </select>
       </label>
-      <output class="clock" aria-label="Tiempo simulado">00:00</output>
+      <label>Animar
+        <select id="animated-scenario" aria-label="Escenario animado en el mapa">
+          <option value="base">Base</option>
+          <option value="astar" selected>A*</option>
+          <option value="optimized">Optimizado</option>
+        </select>
+      </label>
+      <output id="sim-clock" class="clock" aria-label="Tiempo simulado">00:00</output>
     </section>
 
     <!-- Scenario configuration panel -->
@@ -117,6 +124,60 @@
 
       <aside id="metrics-panel" class="metrics-panel" aria-label="Métricas de la simulación">
         <div class="metrics-scroll" tabindex="0" aria-label="Métricas desplazables">
+          <article class="metric-group" data-algorithm="base">
+            <h2 class="metric-group-title">Base</h2>
+            <div class="metric-grid">
+              <article class="metric">
+                <span class="metric-label">Tiempo medio</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="avg-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo total</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="total-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo máximo</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="max-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Completados</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="completed-vehicles">&mdash;</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Congestión máx.</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="max-congestion">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo perdido</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="lost-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Equidad</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="equity">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+            </div>
+          </article>
+
           <article class="metric-group" data-algorithm="astar">
             <h2 class="metric-group-title">A*</h2>
             <div class="metric-grid">
@@ -171,8 +232,8 @@
             </div>
           </article>
 
-          <article class="metric-group" data-algorithm="dijkstra">
-            <h2 class="metric-group-title">Dijkstra</h2>
+          <article class="metric-group" data-algorithm="optimized">
+            <h2 class="metric-group-title">Óptimo</h2>
             <div class="metric-grid">
               <article class="metric">
                 <span class="metric-label">Tiempo medio</span>
@@ -224,6 +285,7 @@
               </article>
             </div>
           </article>
+
         </div>
       </aside>
     </div>
