@@ -1,11 +1,263 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
-<meta charset="UTF-8"/>
-<title>Document</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Simulador de rutas</title>
 </head>
 <body>
-    <div id="app"></div>
-    <script type="module" src="/src/index.ts"></script>
+  <div class="app">
+
+    <!-- Header -->
+    <header class="app-bar mx-md">
+      <h1 class="app-title">Simulador de rutas</h1>
+      <p class="disclaimer">Simulación educativa con datos sintéticos inspirada en un mapa de carreteras. No representa la infraestructura real ni sirve para modelar el tránsito real.</p>
+    </header>
+
+    <!-- Simulation toolbar -->
+    <section class="controls mx-md" role="toolbar" aria-label="Acciones de simulación">
+      <button type="submit" form="scenario-form" class="btn btn-primary">Iniciar</button>
+      <button type="button" id="btn-pause" class="btn">Pausar</button>
+      <button type="button" id="btn-restart" class="btn">Reiniciar</button>
+      <button type="reset" form="scenario-form" class="btn btn-ghost">Restablecer</button>
+      <label>Velocidad
+        <select aria-label="Velocidad de simulación">
+          <option value="15">x300</option>
+          <option value="60">x1200</option>
+          <option value="180">x3600</option>
+        </select>
+      </label>
+      <output class="clock" aria-label="Tiempo simulado">00:00</output>
+    </section>
+
+    <!-- Scenario configuration panel -->
+    <section class="admin-host mx-md">
+      <button id="toggle-controls" type="button" class="bar-toggle is-active" aria-controls="controls" aria-expanded="true">Controles</button>
+
+      <div class="controls-corner">
+        <span>
+          <button id="btn-save-config" type="button" class="btn btn-ghost btn-icon" aria-label="Guardar configuración" title="Guardar configuración">
+            <i data-lucide="save" aria-hidden="true"></i>
+          </button>
+        </span>
+        <span>
+          <button id="btn-load-config" type="button" class="btn btn-ghost btn-icon" aria-label="Cargar configuración" title="Cargar configuración">
+            <i data-lucide="folder-open" aria-hidden="true"></i>
+          </button>
+        </span>
+      </div>
+
+      <article id="controls" class="admin is-open" aria-label="Controles de la simulación">
+        <form id="scenario-form" autocomplete="off" novalidate>
+          <fieldset class="field-group items-4">
+            <legend>Malla</legend>
+            <div class="field-row">
+              <div class="field">
+                <label for="param-rows">Filas</label>
+                <input id="param-rows" name="rows" type="number" min="1" max="60" step="1" value="18" required/>
+              </div>
+              <div class="field">
+                <label for="param-cols">Columnas</label>
+                <input id="param-cols" name="cols" type="number" min="2" max="60" step="1" value="24" required/>
+              </div>
+              <div class="field">
+                <label for="param-entry-count">Entradas</label>
+                <input id="param-entry-count" name="entryCount" type="number" min="1" max="59" step="1" value="12" required/>
+              </div>
+              <div class="field">
+                <label for="param-exit-count">Salidas</label>
+                <input id="param-exit-count" name="exitCount" type="number" min="1" max="59" step="1" value="4" required/>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="field-group items-5">
+            <legend>Generación</legend>
+            <div class="field-row">
+              <div class="field">
+                <label for="param-block-size">Manzana</label>
+                <input id="param-block-size" name="blockSize" type="number" min="3" max="20" step="1" value="7" required/>
+              </div>
+              <div class="field">
+                <label for="param-seed">Semilla</label>
+                <input id="param-seed" name="seed" type="number" min="0" max="4294967295" step="1" value="47"/>
+              </div>
+              <div class="field">
+                <label for="param-cycle-ratio">Ciclos</label>
+                <input id="param-cycle-ratio" name="cycleRatio" type="number" min="0" max="1" step="0.05" value="0.35"/>
+              </div>
+              <div class="field">
+                <label for="param-roundabout-ratio">Rotondas</label>
+                <input id="param-roundabout-ratio" name="roundaboutRatio" type="number" min="0" max="1" step="0.05" value="0.2"/>
+              </div>
+              <div class="field">
+                <label for="param-vehicles">Vehículos</label>
+                <input id="param-vehicles" name="vehicles" type="number" min="1" max="1000" step="1" value="50" required/>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset  class="field-group submit-options">
+            <button type="submit" class="btn btn-primary">
+              Aplicar y reiniciar
+            </button>
+            <button type="reset" form="scenario-form" class="btn btn-ghost">
+              Restablecer
+            </button>
+          </fieldset>
+        </form>
+      </article>
+    </section>
+
+    <!-- Map and metrics workspace -->
+    <div class="workspace">
+      <main class="viewport">
+        <div id="app" role="img" aria-label="Mapa de la simulación de tráfico"></div>
+      </main>
+
+      <aside id="metrics-panel" class="metrics-panel" aria-label="Métricas de la simulación">
+        <div class="metrics-scroll" tabindex="0" aria-label="Métricas desplazables">
+          <article class="metric-group" data-algorithm="astar">
+            <h2 class="metric-group-title">A*</h2>
+            <div class="metric-grid">
+              <article class="metric">
+                <span class="metric-label">Tiempo medio</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="avg-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo total</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="total-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo máximo</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="max-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Completados</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="completed-vehicles">&mdash;</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Congestión máx.</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="max-congestion">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo perdido</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="lost-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Equidad</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="equity">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+            </div>
+          </article>
+
+          <article class="metric-group" data-algorithm="dijkstra">
+            <h2 class="metric-group-title">Dijkstra</h2>
+            <div class="metric-grid">
+              <article class="metric">
+                <span class="metric-label">Tiempo medio</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="avg-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo total</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="total-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo máximo</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="max-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Completados</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="completed-vehicles">&mdash;</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Congestión máx.</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="max-congestion">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo perdido</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="lost-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Equidad</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="equity">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+            </div>
+          </article>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Save configuration dialog -->
+  <dialog id="save-dialog" class="dialog" aria-labelledby="save-dialog-title">
+    <form id="save-form" method="dialog" novalidate>
+      <h2 id="save-dialog-title">Guardar configuración</h2>
+      <div class="field">
+        <label for="config-name">Nombre</label>
+        <input id="config-name" name="configName" type="text" maxlength="60" required/>
+        <small class="hint">Se sobrescribirá si ya existe</small>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="btn-cancel-save" class="btn btn-ghost">Cancelar</button>
+        <button type="submit" id="btn-confirm-save" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Load configuration dialog -->
+  <dialog id="load-dialog" class="dialog" aria-labelledby="load-dialog-title">
+    <form id="load-form" method="dialog" novalidate>
+      <h2 id="load-dialog-title">Cargar configuración</h2>
+      <div id="saved-config-list" class="config-list"></div>
+      <p id="load-empty" class="hint hidden">No hay configuraciones guardadas.</p>
+      <div class="dialog-actions">
+        <button type="button" id="btn-cancel-load" class="btn btn-ghost">Cancelar</button>
+        <button type="submit" id="btn-confirm-load" class="btn btn-primary" disabled>Cargar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/src/index.ts"></script>
 </body>
 </html>
