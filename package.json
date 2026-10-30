@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "dev": "vite",
     "lint": "eslint src",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "a11y": "vite build && node scripts/a11y-audit.mjs"
   },
   "keywords": [],
   "author": "Lucas Elvira Martín <lucas.elvira@upm.es>",
@@ -16,13 +17,15 @@
   "packageManager": "pnpm@12.15.0",
   "type": "module",
   "dependencies": {
-    "d3": "^7.9.0"
+    "d3": "^7.9.0",
+    "lucide": "^1.64.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/d3": "^7.4.3",
+    "axe-core": "^4.14.0",
     "eslint": "^10.13.0",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-sonarjs": "^4.2.2",
