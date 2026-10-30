@@ -66,13 +66,13 @@ export function generateRoadMap(params: {
   const size = params.blockSize ?? 5;
   if (!Number.isInteger(size) || size < 3) throw new RangeError('Require blockSize >= 3.');
 
-  const lattice = generateScenario({ ...params, cycleRatio: params.cycleRatio ?? 0.35 });
+  const rand = createRandom(params.seed);
+  const randInt = genRandInt(rand);
+  const lattice = generateScenario({ ...params, cycleRatio: params.cycleRatio ?? 0.35, random: rand });
   const height = params.rows * size;
   const width = params.cols * size + 3; // col 0 = entries, last col = exits
   const rowOf = (i: number, off: number): number => i * size + off;
   const colOf = (j: number, off: number): number => 1 + j * size + off;
-  const rand = createRandom(params.seed)
-  const randInt = genRandInt(rand);
 
   const mask = new Map<string, number>();
   const ring = new Map<string, string>(); // roundabout tile -> next tile (counter-clockwise)

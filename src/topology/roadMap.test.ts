@@ -22,3 +22,8 @@ test('speed limits: curves slow down, long straights speed up', () => {
   for (const r of map.roads) expect(r.speed).toBeLessThanOrEqual(MAX_SPEED);
   expect(map.roads.filter(r => r.oneWay).every(r => r.speed === 30)).toBe(true);
 });
+
+test('the same seed always generates the same road map', () => {
+  const params = { rows: 6, cols: 8, entryCount: 3, exitCount: 2, seed: 47 };
+  expect(generateRoadMap(params)).toEqual(generateRoadMap(params));
+});

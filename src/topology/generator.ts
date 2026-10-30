@@ -2,19 +2,19 @@ import { edgeKey, Intersection, NodeId, nodeId, Road, Scenario } from './types';
 
 const CYCLE_RATIO = 0.85;
 
-function shuffle<T>(items: T[]): T[] {
+function shuffle<T>(items: T[], random: () => number): T[] {
   const result = [...items];
 
   for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];
   }
 
   return result;
 }
 
-function pickDistinctRows(count: number, rows: number): number[] {
-  return shuffle(Array.from({ length: rows }, (_, i) => i))
+function pickDistinctRows(count: number, rows: number, random: () => number): number[] {
+  return shuffle(Array.from({ length: rows }, (_, i) => i), random)
     .slice(0, count);
 }
 
@@ -26,12 +26,14 @@ export function generateScenario(params: {
   entryCount: number,
   exitCount: number,
   cycleRatio?: number,
+  random?: () => number,
 }): Scenario {
   if (!areValidParameters(params))
     throw new RangeError(
       "Require rows >= 1, cols >= 2 and " +
         "1 <= entryCount, exitCount <= rows.",
     );
+  const random = params.random ?? Math.random;
   const nodes: Intersection[] = defineIntersectionArray(params.rows, params.cols);
   const byId = new Map(nodes.map(n => [n.id, n]));
   const visited = new Set<NodeId>();
@@ -40,13 +42,13 @@ export function generateScenario(params: {
   const addRoad = addRoadTo(roads);
   const neighbors = calculateCandidatesFor(params.rows, params.cols, byId);
 
-  const start = nodes[Math.floor(Math.random() * nodes.length)];
+  const start = nodes[Math.floor(random() * nodes.length)];
   const stack: Intersection[] = [start]
   visited.add(start.id);
 
   while (stack.length > 0) {
     const current = stack[stack.length - 1];
-    const unvisited = shuffle(neighbors(current))
+    const unvisited = shuffle(neighbors(current), random)
       .filter(n => !visited.has(n.id));
 
     if (unvisited.length === 0) {
@@ -74,13 +76,13 @@ export function generateScenario(params: {
   }
 
   const extraCount = Math.round(candidates.length * (params.cycleRatio ?? CYCLE_RATIO));
-  for (const [a, b] of shuffle(candidates).slice(0, extraCount)) addRoad(a, b);
+  for (const [a, b] of shuffle(candidates, random).slice(0, extraCount)) addRoad(a, b);
 
 
-  const entries = pickDistinctRows(params.entryCount, params.rows)
+  const entries = pickDistinctRows(params.entryCount, params.rows, random)
     .map((row) => nodeId(row, 0));
 
-  const exits = pickDistinctRows(params.exitCount, params.rows)
+  const exits = pickDistinctRows(params.exitCount, params.rows, random)
     .map((row) => nodeId(row, params.cols - 1));
 
   const scenario: Scenario = {
