@@ -36,15 +36,17 @@ export function isPresentationToggleKey(
   return tagName === undefined || !EDITABLE_TAGS.has(tagName);
 }
 
-function applyPresentation(root: HTMLElement, enabled: boolean): void {
+/** Fullscreen may be refused (e.g. on page load, without a user gesture); the mode still applies. */
+function applyPresentation(doc: Document, enabled: boolean): void {
+  const root = doc.documentElement;
   setPresentation(root, enabled);
   if (enabled) {
     hideControls();
-    root.scrollTo(0, document.body.scrollHeight);
-    document.documentElement.requestFullscreen();
+    root.scrollTo(0, doc.body.scrollHeight);
+    root.requestFullscreen().catch(() => undefined);
   } else {
     restoreControls();
-    document.exitFullscreen();
+    if (doc.fullscreenElement) doc.exitFullscreen().catch(() => undefined);
   }
 }
 
@@ -52,7 +54,7 @@ export function initPresentationMode(doc: Document = document): void {
   const root = doc.documentElement;
   const search = doc.defaultView?.location.search ?? '';
 
-  applyPresentation(root, isPresentationRequested(search));
+  applyPresentation(doc, isPresentationRequested(search));
 
   doc.addEventListener('keydown', (event) => {
     if (event.repeat) {
@@ -61,6 +63,6 @@ export function initPresentationMode(doc: Document = document): void {
     if (!isPresentationToggleKey(event, event.target)) {
       return;
     }
-    applyPresentation(root, !root.classList.contains(PRESENTATION_CLASS));
+    applyPresentation(doc, !root.classList.contains(PRESENTATION_CLASS));
   });
 }

@@ -16,6 +16,8 @@ export interface StubDocument {
   document: Document;
   root: HTMLElement;
   elements: Map<string, StubElement>;
+  /** Number of times the page asked the browser to leave fullscreen. */
+  exitFullscreenCalls(): number;
   /** Dispatches a keydown event through the listeners registered in the document. */
   press(event: Partial<KeyboardEvent>): void;
 }
@@ -55,16 +57,30 @@ export function createControlsStubDocument(search = '', open = true): StubDocume
   ]);
 
   const rootClasses = new Set<string>();
+  let fullscreenElement: HTMLElement | null = null;
+  let exitCalls = 0;
   const root: HTMLElement = {
     classList: {
       contains: (name: string) => rootClasses.has(name),
       toggle: (name: string, force: boolean|undefined) => toggleIn(rootClasses, name, force),
+    },
+    scrollTo: () => undefined,
+    requestFullscreen: () => {
+      fullscreenElement = root;
+      return Promise.resolve();
     },
   } as unknown as HTMLElement;
 
   const listeners = new Map<string, (event: unknown) => void>();
   const document = {
     documentElement: root,
+    body: { scrollHeight: 0 },
+    get fullscreenElement() { return fullscreenElement; },
+    exitFullscreen: () => {
+      exitCalls++;
+      fullscreenElement = null;
+      return Promise.resolve();
+    },
     defaultView: { location: { search } },
     addEventListener: (type: string, listener: (event: unknown) => void) => listeners.set(type, listener),
     getElementById: (id: string | null) => elements.get(id ?? ''),
@@ -74,6 +90,7 @@ export function createControlsStubDocument(search = '', open = true): StubDocume
     document,
     root,
     elements,
+    exitFullscreenCalls: () => exitCalls,
     press: (event) => listeners.get('keydown')?.(event),
   };
 }

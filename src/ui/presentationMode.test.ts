@@ -112,6 +112,16 @@ describe('Feature: Presentation mode', () => {
     });
   });
 
+  describe('When the app starts outside presentation mode', () => {
+    it('should not ask the browser to leave a fullscreen it never entered', async () => {
+      const { initPresentationMode } = await import('./presentationMode');
+
+      initPresentationMode(stub.document);
+
+      expect(stub.exitFullscreenCalls()).toBe(0);
+    });
+  });
+
   describe('When the presenter presses Shift+P in the page', () => {
     it('should enter presentation mode and hide the controls', async () => {
       const { initPresentationMode } = await import('./presentationMode');
