@@ -33,7 +33,8 @@ const key = ([r, c]: Tile): string => `${r},${c}`;
 const degreeOf = (mask: number): number => [0, 1, 2, 3].filter(d => (mask >> d) & 1).length;
 const genRandInt = (gen: () => number) => (lo: number, hi: number): number => lo + Math.floor(gen() * (hi - lo + 1));
 
-function createRandom(seed?: number): () => number {
+/** Seeded LCG in [0, 1); falls back to Math.random when no seed is given. */
+export function createRandom(seed?: number): () => number {
   if (seed === undefined) return Math.random;
 
   let state = seed >>> 0;
