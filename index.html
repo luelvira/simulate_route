@@ -32,6 +32,7 @@
           <option value="base">Base</option>
           <option value="astar" selected>A*</option>
           <option value="optimized">Optimizado</option>
+          <option value="central">Central</option>
         </select>
       </label>
       <output id="sim-clock" class="clock" aria-label="Tiempo simulado">00:00</output>
@@ -175,6 +176,27 @@
                   <span class="metric-unit">%</span>
                 </span>
               </article>
+              <article class="metric">
+                <span class="metric-label">A tiempo</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="on-time">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Retraso medio</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="avg-lateness">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Desplazamiento salida</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="departure-shift">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
             </div>
           </article>
 
@@ -229,6 +251,27 @@
                   <span class="metric-unit">%</span>
                 </span>
               </article>
+              <article class="metric">
+                <span class="metric-label">A tiempo</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="on-time">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Retraso medio</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="avg-lateness">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Desplazamiento salida</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="departure-shift">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
             </div>
           </article>
 
@@ -281,6 +324,102 @@
                 <span class="metric-body">
                   <span class="metric-value" data-metric="equity">&mdash;</span>
                   <span class="metric-unit">%</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">A tiempo</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="on-time">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Retraso medio</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="avg-lateness">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Desplazamiento salida</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="departure-shift">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+            </div>
+          </article>
+
+          <article class="metric-group" data-algorithm="central">
+            <h2 class="metric-group-title">Central</h2>
+            <div class="metric-grid">
+              <article class="metric">
+                <span class="metric-label">Tiempo medio</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="avg-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo total</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="total-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo máximo</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="max-travel-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Completados</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="completed-vehicles">&mdash;</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Congestión máx.</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="max-congestion">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Tiempo perdido</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="lost-time">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Equidad</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="equity">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">A tiempo</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="on-time">&mdash;</span>
+                  <span class="metric-unit">%</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Retraso medio</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="avg-lateness">&mdash;</span>
+                  <span class="metric-unit">s</span>
+                </span>
+              </article>
+              <article class="metric">
+                <span class="metric-label">Desplazamiento salida</span>
+                <span class="metric-body">
+                  <span class="metric-value" data-metric="departure-shift">&mdash;</span>
+                  <span class="metric-unit">s</span>
                 </span>
               </article>
             </div>

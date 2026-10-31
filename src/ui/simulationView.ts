@@ -1,13 +1,14 @@
 import { demandRandom, generateDemand, Trip } from '../simulation/demand';
 import { positionOf, Simulation } from '../simulation/engine';
 import { Metrics } from '../simulation/metrics';
-import { balancedPlanner, freeFlowPlanner, unguidedPlanner } from '../simulation/routing';
+import { centralPlanner } from '../simulation/centralPlanner';
+import { balancedPlanner, freeFlowPlanner, freeFlowSeconds, unguidedPlanner } from '../simulation/routing';
 import { renderRoadMap, renderVehicles } from '../topology/render';
 import { generateRoadMap } from '../topology/roadMap';
 import { Scenario } from '../topology/types';
 import { readConfig } from './configControls';
 
-type ScenarioKey = 'base' | 'astar' | 'optimized';
+type ScenarioKey = 'base' | 'astar' | 'optimized' | 'central';
 
 const STEP_SECONDS = 1;
 
@@ -20,6 +21,7 @@ function createRuns(map: Scenario, trips: Trip[]): Record<ScenarioKey, Simulatio
     base: new Simulation(map, trips, unguidedPlanner(map)),
     astar: new Simulation(map, trips, freeFlowPlanner(map)),
     optimized: new Simulation(map, trips, balancedPlanner(map, trips)),
+    central: new Simulation(map, trips, centralPlanner(map, trips)),
   };
 }
 
@@ -38,6 +40,9 @@ function showMetrics(key: ScenarioKey, metrics: Metrics): void {
     'max-congestion': metrics.maxCongestion.toFixed(0),
     'lost-time': metrics.lostTime.toFixed(0),
     'equity': metrics.equity.toFixed(0),
+    'on-time': metrics.onTime.toFixed(0),
+    'avg-lateness': metrics.avgLateness.toFixed(0),
+    'departure-shift': metrics.avgDepartureShift.toFixed(0),
   };
   for (const [name, value] of Object.entries(values)) {
     group.querySelector(`[data-metric="${name}"]`)!.textContent = value;
@@ -45,7 +50,7 @@ function showMetrics(key: ScenarioKey, metrics: Metrics): void {
 }
 
 /**
- * Wires the toolbar: Start builds the map, the demand and the three scenario
+ * Wires the toolbar: Start builds the map, the demand and the four scenario
  * runs; every frame advances all of them by the same simulated time and
  * animates the one chosen in the scenario selector.
  */
@@ -105,7 +110,7 @@ export function initSimulation(form: HTMLFormElement): void {
       app.textContent = `No se puede generar el escenario: ${(error as Error).message}`;
       return;
     }
-    const trips = generateDemand(map.entries, map.exits, config.vehicles, demandRandom(config.seed));
+    const trips = generateDemand(map.entries, map.exits, config.vehicles, demandRandom(config.seed), freeFlowSeconds(map));
     renderRoadMap(app, map);
     begin({ map, trips, runs: createRuns(map, trips) });
   });
