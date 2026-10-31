@@ -1,8 +1,9 @@
 import { demandRandom, generateDemand, Trip } from '../simulation/demand';
 import { positionOf, Simulation } from '../simulation/engine';
 import { Metrics } from '../simulation/metrics';
-import { centralPlanner } from '../simulation/centralPlanner';
-import { balancedPlanner, freeFlowPlanner, freeFlowSeconds, unguidedPlanner } from '../simulation/routing';
+import { fromPlanTable } from '../simulation/planTable';
+import type { PrecomputedPlans } from '../simulation/plans.worker';
+import { freeFlowPlanner, freeFlowSeconds, unguidedPlanner } from '../simulation/routing';
 import { renderRoadMap, renderVehicles } from '../topology/render';
 import { generateRoadMap } from '../topology/roadMap';
 import { Scenario } from '../topology/types';
@@ -12,16 +13,16 @@ type ScenarioKey = 'base' | 'astar' | 'optimized' | 'central';
 
 const STEP_SECONDS = 1;
 
-interface Session { map: Scenario, trips: Trip[], runs: Record<ScenarioKey, Simulation> }
+interface Session { map: Scenario, trips: Trip[], plans: PrecomputedPlans, runs: Record<ScenarioKey, Simulation> }
 
 const byId = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 
-function createRuns(map: Scenario, trips: Trip[]): Record<ScenarioKey, Simulation> {
+function createRuns(map: Scenario, trips: Trip[], plans: PrecomputedPlans): Record<ScenarioKey, Simulation> {
   return {
     base: new Simulation(map, trips, unguidedPlanner(map)),
     astar: new Simulation(map, trips, freeFlowPlanner(map)),
-    optimized: new Simulation(map, trips, balancedPlanner(map, trips)),
-    central: new Simulation(map, trips, centralPlanner(map, trips)),
+    optimized: new Simulation(map, trips, fromPlanTable(plans.optimized, map)),
+    central: new Simulation(map, trips, fromPlanTable(plans.central, map)),
   };
 }
 
@@ -50,7 +51,8 @@ function showMetrics(key: ScenarioKey, metrics: Metrics): void {
 }
 
 /**
- * Wires the toolbar: Start builds the map, the demand and the four scenario
+ * Wires the toolbar: Start builds the map and the demand, computes the
+ * optimised and central plans in a worker and then builds the four scenario
  * runs; every frame advances all of them by the same simulated time and
  * animates the one chosen in the scenario selector.
  */
@@ -61,9 +63,11 @@ export function initSimulation(form: HTMLFormElement): void {
   const animated = byId<HTMLSelectElement>('animated-scenario');
   const clock = byId<HTMLOutputElement>('sim-clock');
   let session: Session | undefined;
+  let planning: Worker | undefined;
   let paused = false;
   let pending = 0;
   let lastFrame: number | undefined;
+  let frameId = 0;
 
   const draw = (): void => {
     if (!session) return;
@@ -85,40 +89,52 @@ export function initSimulation(form: HTMLFormElement): void {
       runs.forEach(r => { if (!r.done) r.step(STEP_SECONDS); });
     }
     draw();
-    if (runs.some(r => !r.done)) requestAnimationFrame(frame);
+    if (runs.some(r => !r.done)) frameId = requestAnimationFrame(frame);
   };
 
   const begin = (next: Session): void => {
-    const running = session !== undefined && Object.values(session.runs).some(r => !r.done);
+    cancelAnimationFrame(frameId);
     session = next;
     paused = false;
     pause.textContent = 'Pausar';
     pending = 0;
     lastFrame = undefined;
     draw();
-    if (!running) requestAnimationFrame(frame);
+    frameId = requestAnimationFrame(frame);
   };
 
   form.addEventListener('submit', (event: SubmitEvent) => {
     event.preventDefault();
     const config = readConfig(form);
+    planning?.terminate();
+    session = undefined;
     let map: Scenario;
     try {
       map = generateRoadMap(config);
     } catch (error) {
-      session = undefined;
       app.textContent = `No se puede generar el escenario: ${(error as Error).message}`;
       return;
     }
     const trips = generateDemand(map.entries, map.exits, config.vehicles, demandRandom(config.seed), freeFlowSeconds(map));
     renderRoadMap(app, map);
-    begin({ map, trips, runs: createRuns(map, trips) });
+    clock.value = 'Calculando...';
+    const worker = new Worker(new URL('../simulation/plans.worker.ts', import.meta.url), { type: 'module' });
+    planning = worker;
+    worker.onmessage = ({ data: plans }: MessageEvent<PrecomputedPlans>) => {
+      worker.terminate();
+      begin({ map, trips, plans, runs: createRuns(map, trips, plans) });
+    };
+    worker.onerror = (event: ErrorEvent) => {
+      worker.terminate();
+      app.textContent = `No se pueden calcular las rutas: ${event.message}`;
+    };
+    worker.postMessage(config);
   });
 
   byId('btn-restart').addEventListener('click', () => {
     if (!session) return;
     renderRoadMap(app, session.map);
-    begin({ ...session, runs: createRuns(session.map, session.trips) });
+    begin({ ...session, runs: createRuns(session.map, session.trips, session.plans) });
   });
 
   pause.addEventListener('click', () => {
