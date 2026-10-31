@@ -20,8 +20,9 @@ const roadTime = (s: Schedule): number => s.arrival - s.departure;
  * Central scenario: schedules every vehicle before the simulation starts,
  * one by one in target order, on a forecast of the traffic already planned.
  * A vehicle leaves at its nominal departure when it arrives on time;
- * otherwise it leaves earlier (never before time 0), choosing the departure
- * that best balances road time and waiting at the destination. A vehicle
+ * otherwise it leaves earlier (never before time 0), choosing among the
+ * on-time departures the one that best balances road time and waiting at
+ * the destination. A vehicle
  * that cannot arrive on time at all is the only one ever delayed: it takes
  * the departure with the shortest road time, moving it out of the peak so
  * the roads stay free for vehicles that can still make it.
@@ -47,23 +48,37 @@ export function centralPlanner(scenario: Scenario, trips: Trip[]): Planner & {
   };
 }
 
-/** Best on-time schedule leaving at the nominal departure or earlier, if any. */
+/**
+ * Best on-time schedule leaving at the nominal departure or earlier (never
+ * before time 0), if any: the latest on-time departure, found by binary
+ * search, then earlier slots while they lower the balance of road time and
+ * waiting at the destination.
+ */
 function onTime(trip: Trip, at: (trip: Trip, departure: number) => Schedule): Schedule | undefined {
   const cost = (s: Schedule): number => roadTime(s) + EARLY_ARRIVAL_WEIGHT * (trip.target - s.arrival);
-  let best: Schedule | undefined;
-  for (let departure = trip.departure; ;) {
-    const candidate = at(trip, departure);
-    const lateness = candidate.arrival - trip.target;
-    if (lateness <= 0) {
-      if (best && cost(candidate) >= cost(best)) return best;
-      best = candidate;
-    } else if (best) {
-      return best;
-    }
-    if (departure === 0) return best;
-    // a late vehicle steps back by its lateness; an on-time one probes one slot earlier
-    departure = Math.max(0, Math.floor(departure - (lateness > 0 ? Math.max(1, lateness) : ASSIGNMENT_SLOT)));
+  let best = latestOnTime(trip, at);
+  while (best && best.departure > 0) {
+    const candidate = at(trip, Math.max(0, best.departure - ASSIGNMENT_SLOT));
+    if (candidate.arrival > trip.target || cost(candidate) >= cost(best)) break;
+    best = candidate;
   }
+  return best;
+}
+
+/** Latest on-time departure between time 0 and the nominal one, to the second. */
+function latestOnTime(trip: Trip, at: (trip: Trip, departure: number) => Schedule): Schedule | undefined {
+  // ponytail: assumes leaving earlier never arrives later; a non-monotone forecast may miss a later on-time departure
+  const nominal = at(trip, trip.departure);
+  if (nominal.arrival <= trip.target) return nominal;
+  let best = at(trip, 0);
+  if (best.arrival > trip.target) return undefined;
+  for (let [early, late] = [0, trip.departure]; late - early > 1;) {
+    const middle = Math.floor((early + late) / 2);
+    const candidate = at(trip, middle);
+    if (candidate.arrival <= trip.target) [early, best] = [middle, candidate];
+    else late = middle;
+  }
+  return best;
 }
 
 /** Shortest-road-time schedule of a vehicle that will be late anyway. */
