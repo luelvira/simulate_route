@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { congestionRatio, congestedSpeed, MIN_SPEED_FACTOR } from './traffic';
+import { congestionRatio, congestedSpeed, MIN_SPEED_FACTOR, queuedSpeed } from './traffic';
 
 describe('Feature: Speed reduction caused by traffic density', () => {
 
@@ -23,6 +23,16 @@ describe('Feature: Speed reduction caused by traffic density', () => {
     it('should report 100% congestion and keep a minimum crawling speed so traffic never stops', () => {
       expect(congestionRatio(1000, 2)).toBe(1);
       expect(congestedSpeed(60, 1000, 2)).toBe(60 * MIN_SPEED_FACTOR);
+    });
+  });
+
+  describe('When forecasting a road for planning', () => {
+    it('should equal the congested speed below the jam density', () => {
+      expect(queuedSpeed(100, 2, 10)).toBe(congestedSpeed(100, 2, 10));
+    });
+
+    it('should keep slowing down a road beyond its jam density as vehicles queue', () => {
+      expect(queuedSpeed(100, 40, 10)).toBeLessThan(queuedSpeed(100, 20, 10));
     });
   });
 });

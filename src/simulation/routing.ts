@@ -1,13 +1,12 @@
 import { aStar, Step } from '../topology/astar';
 import { MAX_SPEED } from '../topology/roadMap';
-import { NodeId, Road, Scenario } from '../topology/types';
+import { NodeId, Scenario } from '../topology/types';
 import { Trip } from './demand';
+import { LoadForecast } from './loadForecast';
 import { congestedSpeed, toSeconds } from './traffic';
 
 /** Share of the allowed speed an unguided driver drives at while looking for the way. */
 export const HESITATION_FACTOR = 0.9;
-/** Width (s) of the time slots used to forecast how many vehicles share a road. */
-export const ASSIGNMENT_SLOT = 30;
 
 /** Decides the route of each trip. */
 export interface Planner {
@@ -28,10 +27,8 @@ export function freeFlowSeconds(scenario: Scenario): (entry: NodeId, exit: NodeI
   };
 }
 
-const speedOf = (road: Road): number => Math.min(road.speed ?? MAX_SPEED, MAX_SPEED);
-
-function route(scenario: Scenario, from: Step['from'], trip: Trip, edgeTime?: (road: Road, enteredAt: number) => number): Step[] {
-  return aStar(scenario, from, trip.exit, MAX_SPEED, edgeTime)!.steps;
+function route(scenario: Scenario, from: Step['from'], trip: Trip): Step[] {
+  return aStar(scenario, from, trip.exit, MAX_SPEED)!.steps;
 }
 
 /** A*: every driver takes the fastest route of the empty network. */
@@ -56,23 +53,11 @@ export function unguidedPlanner(scenario: Scenario): Planner {
  */
 export function balancedPlanner(scenario: Scenario, trips: Trip[]): Planner {
   // ponytail: one greedy pass, no iteration to equilibrium; enough for the demo
-  const booked = new Map<Road, Map<number, number>>();
-  const slotOf = (seconds: number): number => Math.floor(seconds / ASSIGNMENT_SLOT);
-  const occupancy = (road: Road, seconds: number): number => booked.get(road)?.get(slotOf(seconds)) ?? 0;
-  const roadTime = (road: Road, seconds: number): number =>
-    road.cost / congestedSpeed(speedOf(road), occupancy(road, seconds), road.cost);
-
+  const forecast = new LoadForecast(scenario, congestedSpeed);
   const routes = new Map<number, Step[]>();
   for (const trip of trips) {
-    const steps = route(scenario, trip.entry, trip, (road, at) => roadTime(road, trip.departure + toSeconds(at)));
-    let clock = trip.departure;
-    for (const { road } of steps) {
-      const leave = clock + toSeconds(roadTime(road, clock));
-      const slots = booked.get(road) ?? new Map<number, number>();
-      for (let slot = slotOf(clock); slot <= slotOf(leave); slot++) slots.set(slot, (slots.get(slot) ?? 0) + 1);
-      booked.set(road, slots);
-      clock = leave;
-    }
+    const { steps } = forecast.route(trip, trip.departure);
+    forecast.book(steps, trip.departure);
     routes.set(trip.id, steps);
   }
   return { plan: trip => routes.get(trip.id)! };

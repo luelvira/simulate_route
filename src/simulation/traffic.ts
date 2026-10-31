@@ -20,3 +20,10 @@ export const tilesPerSecond = (kmh: number): number => kmh / 3.6 / TILE_METERS;
 
 /** Converts an A* time (tiles / km/h) into seconds. */
 export const toSeconds = (tilesPerKmh: number): number => tilesPerKmh * 3.6 * TILE_METERS;
+
+/**
+ * Planning speed: the congested speed below the jam density; beyond it,
+ * vehicles queue, so every extra one keeps lengthening the road time.
+ */
+export const queuedSpeed = (limit: number, vehicles: number, length: number): number =>
+  congestedSpeed(limit, vehicles, length) / Math.max(1, vehicles / (JAM_DENSITY * Math.max(length, MIN_DENSITY_LENGTH)));
