@@ -9,6 +9,9 @@ export const ASSIGNMENT_SLOT = 30;
 
 type SpeedModel = (limit: number, vehicles: number, length: number) => number;
 
+/** Road time slots one booked vehicle occupies. */
+export type Booking = [Road, number][];
+
 const slotOf = (seconds: number): number => Math.floor(seconds / ASSIGNMENT_SLOT);
 
 /**
@@ -29,15 +32,27 @@ export class LoadForecast {
   }
 
   /** Books one vehicle on every slot each road of the route is occupied. */
-  book(steps: Step[], departure: number): void {
+  book(steps: Step[], departure: number): Booking {
+    const booking: Booking = [];
     let clock = departure;
     for (const { road } of steps) {
       const leave = clock + toSeconds(this.roadTime(road, clock));
-      const slots = this.booked.get(road) ?? new Map<number, number>();
-      for (let slot = slotOf(clock); slot <= slotOf(leave); slot++) slots.set(slot, (slots.get(slot) ?? 0) + 1);
-      this.booked.set(road, slots);
+      for (let slot = slotOf(clock); slot <= slotOf(leave); slot++) booking.push([road, slot]);
       clock = leave;
     }
+    booking.forEach(([road, slot]) => this.add(road, slot, 1));
+    return booking;
+  }
+
+  /** Removes a vehicle booked earlier. */
+  cancel(booking: Booking): void {
+    booking.forEach(([road, slot]) => this.add(road, slot, -1));
+  }
+
+  private add(road: Road, slot: number, vehicles: number): void {
+    const slots = this.booked.get(road) ?? new Map<number, number>();
+    slots.set(slot, (slots.get(slot) ?? 0) + vehicles);
+    this.booked.set(road, slots);
   }
 
   private roadTime(road: Road, seconds: number): number {

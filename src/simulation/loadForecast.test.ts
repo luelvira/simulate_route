@@ -34,4 +34,16 @@ describe('Feature: Time-dependent traffic forecast', () => {
       expect(forecast.route(trip, 100).arrival).toBeCloseTo(100 + freeFlowSeconds(map)(trip.entry, trip.exit));
     });
   });
+
+  describe('When a booked vehicle is re-planned', () => {
+    it('should forget the vehicle once its booking is cancelled', () => {
+      const forecast = new LoadForecast(map, congestedSpeed);
+      const alone = forecast.route(trip, 0);
+      const bookings = Array.from({ length: 50 }, () => forecast.book(alone.steps, 0));
+
+      bookings.forEach(booking => forecast.cancel(booking));
+
+      expect(forecast.route(trip, 0).arrival).toBeCloseTo(alone.arrival);
+    });
+  });
 });
