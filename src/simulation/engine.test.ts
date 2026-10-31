@@ -3,7 +3,7 @@ import { createRandom, generateRoadMap } from '../topology/roadMap';
 import { demandRandom, generateDemand, Trip } from './demand';
 import { positionOf, Simulation, Vehicle } from './engine';
 import { Road } from '../topology/types';
-import { balancedPlanner, freeFlowPlanner, unguidedPlanner } from './routing';
+import { balancedPlanner, freeFlowPlanner, freeFlowSeconds, Planner, unguidedPlanner } from './routing';
 
 const map = generateRoadMap({ rows: 8, cols: 10, entryCount: 4, exitCount: 3, blockSize: 5, seed: 11 });
 const trips = generateDemand(map.entries, map.exits, 60, createRandom(5));
@@ -74,6 +74,27 @@ describe('Feature: Traffic simulation', () => {
 
       expect(base).toBeGreaterThan(avg(new Simulation(demo, demoTrips, freeFlowPlanner(demo))));
       expect(base).toBeGreaterThan(avg(new Simulation(demo, demoTrips, balancedPlanner(demo, demoTrips))));
+    });
+  });
+});
+
+describe('Feature: Departure scheduling', () => {
+
+  describe('When the planner chooses the departure time', () => {
+    const shifted = (offset: number): Planner => ({ ...freeFlowPlanner(map), departure: trip => trip.departure + offset });
+
+    it('should depart each vehicle at the time chosen by the planner', () => {
+      const simulation = runToEnd(new Simulation(map, trips.slice(0, 5), shifted(100)));
+
+      for (const v of simulation.vehicles) expect(v.departure).toBe(v.trip.departure + 100);
+    });
+  });
+
+  describe('When a lone vehicle leaves at its nominal departure', () => {
+    it('should reach its exit on time', () => {
+      const [trip] = generateDemand(map.entries, map.exits, 1, createRandom(3), freeFlowSeconds(map));
+
+      expect(runToEnd(new Simulation(map, [trip], freeFlowPlanner(map))).metrics().onTime).toBe(100);
     });
   });
 });

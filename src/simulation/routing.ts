@@ -13,6 +13,8 @@ export const ASSIGNMENT_SLOT = 30;
 export interface Planner {
   /** Share of the allowed speed its drivers actually drive at (1 when omitted). */
   speedFactor?: number,
+  /** Time the trip actually departs (its nominal departure when omitted). */
+  departure?(trip: Trip): number,
   plan(trip: Trip): Step[],
 }
 

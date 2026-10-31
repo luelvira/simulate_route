@@ -28,8 +28,10 @@ export class Simulation {
 
   constructor(scenario: Scenario, trips: Trip[], private readonly planner: Planner) {
     const idealTime = freeFlowSeconds(scenario);
-    this.vehicles = [...trips].sort((a, b) => a.departure - b.departure)
-      .map(trip => ({ trip, departure: trip.departure, idealTime: idealTime(trip.entry, trip.exit), route: [], progress: 0 }));
+    const departure = (trip: Trip): number => planner.departure?.(trip) ?? trip.departure;
+    this.vehicles = trips
+      .map(trip => ({ trip, departure: departure(trip), idealTime: idealTime(trip.entry, trip.exit), route: [], progress: 0 }))
+      .sort((a, b) => a.departure - b.departure);
   }
 
   get done(): boolean {
