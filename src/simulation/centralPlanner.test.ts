@@ -56,6 +56,10 @@ describe('Feature: Centralized scheduling', () => {
       expect(central.onTime).toBeGreaterThan(optimised.onTime);
       expect(central.avgTravelTime).toBeLessThanOrEqual(optimised.avgTravelTime);
     }, 120_000);
+
+    it('should bring most vehicles to their exit on time', () => {
+      expect(finalMetrics(planner, trips).onTime).toBeGreaterThan(50);
+    }, 120_000);
   });
 
   describe('When vehicles cannot leave earlier than the simulation start', () => {

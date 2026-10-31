@@ -1,7 +1,7 @@
 import { Step } from '../topology/astar';
 import { Scenario } from '../topology/types';
 import { Trip } from './demand';
-import { ASSIGNMENT_SLOT, LoadForecast } from './loadForecast';
+import { ASSIGNMENT_SLOT, Booking, LoadForecast } from './loadForecast';
 import { Planner } from './routing';
 import { queuedSpeed } from './traffic';
 
@@ -9,6 +9,11 @@ import { queuedSpeed } from './traffic';
 export const MAX_DELAY = 1800;
 /** Delayed departures are tried every this many forecast slots. */
 export const DELAY_STEP_SLOTS = 4;
+/**
+ * Planning passes. The first one only sees the vehicles planned before each
+ * one; the next ones re-plan every vehicle against all the others.
+ */
+export const PASSES = 2;
 /** Weight of each second waiting at the destination against a second on the road. */
 export const EARLY_ARRIVAL_WEIGHT = 0.5;
 
@@ -18,7 +23,8 @@ const roadTime = (s: Schedule): number => s.arrival - s.departure;
 
 /**
  * Central scenario: schedules every vehicle before the simulation starts,
- * one by one in target order, on a forecast of the traffic already planned.
+ * one by one in target order, on a forecast of the traffic already planned,
+ * and then re-plans each one knowing where all the others will be.
  * A vehicle leaves at its nominal departure when it arrives on time;
  * otherwise it leaves earlier (never before time 0), choosing among the
  * on-time departures the one that best balances road time and waiting at
@@ -31,15 +37,21 @@ export function centralPlanner(scenario: Scenario, trips: Trip[]): Planner & {
   departure(trip: Trip): number,
   arrival(trip: Trip): number,
 } {
-  // ponytail: one greedy pass in target order, no iteration to equilibrium
+  // ponytail: two greedy passes, no iteration to equilibrium
   const forecast = new LoadForecast(scenario, queuedSpeed);
   const schedules = new Map<number, Schedule>();
+  const bookings = new Map<number, Booking>();
   const at = (trip: Trip, departure: number): Schedule => ({ departure, ...forecast.route(trip, departure) });
+  const ordered = [...trips].sort((a, b) => a.target - b.target || a.id - b.id);
 
-  for (const trip of [...trips].sort((a, b) => a.target - b.target || a.id - b.id)) {
-    const schedule = onTime(trip, at) ?? delayed(trip, at);
-    forecast.book(schedule.steps, schedule.departure);
-    schedules.set(trip.id, schedule);
+  for (let pass = 0; pass < PASSES; pass++) {
+    for (const trip of ordered) {
+      const previous = bookings.get(trip.id);
+      if (previous) forecast.cancel(previous);
+      const schedule = onTime(trip, at) ?? delayed(trip, at);
+      bookings.set(trip.id, forecast.book(schedule.steps, schedule.departure));
+      schedules.set(trip.id, schedule);
+    }
   }
   return {
     plan: trip => schedules.get(trip.id)!.steps,
