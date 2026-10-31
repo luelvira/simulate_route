@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createRandom } from '../topology/roadMap';
-import { generateDemand, TARGET_WINDOW } from './demand';
+import { generateDemand, LEAD_TIME, TARGET_WINDOW } from './demand';
 
 const entries = ['r0c0', 'r5c0'] as const;
 const exits = ['r1c9', 'r4c9', 'r7c9'] as const;
@@ -12,14 +12,14 @@ describe('Feature: Travel demand', () => {
       expect(generateDemand([...entries], [...exits], 37, createRandom(1))).toHaveLength(37);
     });
 
-    it('should start every trip at an entry, end it at an exit and depart within the target window', () => {
+    it('should start every trip at an entry, end it at an exit and depart within the target window after the lead time', () => {
       const trips = generateDemand([...entries], [...exits], 200, createRandom(1));
 
       for (const trip of trips) {
         expect(entries).toContain(trip.entry);
         expect(exits).toContain(trip.exit);
-        expect(trip.departure).toBeGreaterThanOrEqual(0);
-        expect(trip.departure).toBeLessThanOrEqual(TARGET_WINDOW);
+        expect(trip.departure).toBeGreaterThanOrEqual(LEAD_TIME);
+        expect(trip.departure).toBeLessThanOrEqual(LEAD_TIME + TARGET_WINDOW);
       }
     });
 
@@ -55,11 +55,12 @@ describe('Feature: Travel demand', () => {
       }
     });
 
-    it('should let the first vehicle leave right after the simulation starts', () => {
+    it('should leave a 30 minute margin before the first nominal departure', () => {
       const first = Math.min(...trips.map(t => t.departure));
 
-      expect(first).toBeGreaterThanOrEqual(0);
-      expect(first).toBeLessThan(TARGET_WINDOW);
+      expect(LEAD_TIME).toBe(1800);
+      expect(first).toBeGreaterThanOrEqual(LEAD_TIME);
+      expect(first).toBeLessThan(LEAD_TIME + TARGET_WINDOW);
     });
   });
 });

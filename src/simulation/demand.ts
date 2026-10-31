@@ -3,6 +3,8 @@ import { NodeId } from '../topology/types';
 
 /** Seconds over which the arrival targets of the vehicles are spread. */
 export const TARGET_WINDOW = 300;
+/** Seconds between the simulation start and the earliest nominal departure, room to leave earlier. */
+export const LEAD_TIME = 1800;
 
 /** A vehicle's journey: it should reach `exit` by `target`, leaving `entry` at its nominal `departure`. */
 export interface Trip { id: number, entry: NodeId, exit: NodeId, departure: number, target: number }
@@ -11,7 +13,8 @@ export interface Trip { id: number, entry: NodeId, exit: NodeId, departure: numb
  * One trip per vehicle with a random entry, exit and arrival target. Targets
  * share a common time plus a random offset within TARGET_WINDOW; each vehicle
  * departs just in time to reach its target on an empty network, given the
- * free-flow time `idealTime` (s) of its trip.
+ * free-flow time `idealTime` (s) of its trip. No nominal departure is
+ * earlier than LEAD_TIME.
  */
 export function generateDemand(
   entries: NodeId[],
@@ -23,7 +26,7 @@ export function generateDemand(
   const pick = (items: NodeId[]): NodeId => items[Math.floor(random() * items.length)];
   const drawn = Array.from({ length: count }, (_, id) =>
     ({ id, entry: pick(entries), exit: pick(exits), offset: Math.round(random() * TARGET_WINDOW) }));
-  const common = Math.ceil(Math.max(0, ...drawn.map(t => idealTime(t.entry, t.exit))));
+  const common = LEAD_TIME + Math.ceil(Math.max(0, ...drawn.map(t => idealTime(t.entry, t.exit))));
   return drawn.map(({ offset, ...trip }) => {
     const target = common + offset;
     return { ...trip, target, departure: Math.floor(target - idealTime(trip.entry, trip.exit)) };
