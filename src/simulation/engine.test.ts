@@ -39,7 +39,7 @@ describe('Feature: Traffic simulation', () => {
   describe('When many vehicles share the same roads', () => {
     it('should make each of them slower than a vehicle driving alone', () => {
       const crowd: Trip[] = Array.from({ length: 30 }, (_, id) =>
-        ({ id, entry: map.entries[0], exit: map.exits[0], departure: 0 }));
+        ({ id, entry: map.entries[0], exit: map.exits[0], departure: 0, target: 0 }));
 
       const alone = runToEnd(new Simulation(map, crowd.slice(0, 1), freeFlowPlanner(map))).metrics();
       const crowded = runToEnd(new Simulation(map, crowd, freeFlowPlanner(map))).metrics();

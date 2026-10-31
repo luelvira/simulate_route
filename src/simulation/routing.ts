@@ -1,6 +1,6 @@
 import { aStar, Step } from '../topology/astar';
 import { MAX_SPEED } from '../topology/roadMap';
-import { Road, Scenario } from '../topology/types';
+import { NodeId, Road, Scenario } from '../topology/types';
 import { Trip } from './demand';
 import { congestedSpeed, toSeconds } from './traffic';
 
@@ -14,6 +14,16 @@ export interface Planner {
   /** Share of the allowed speed its drivers actually drive at (1 when omitted). */
   speedFactor?: number,
   plan(trip: Trip): Step[],
+}
+
+/** Free-flow travel time (s) between an entry and an exit, memoised per pair. */
+export function freeFlowSeconds(scenario: Scenario): (entry: NodeId, exit: NodeId) => number {
+  const cache = new Map<string, number>();
+  return (entry, exit) => {
+    const key = `${entry}>${exit}`;
+    if (!cache.has(key)) cache.set(key, toSeconds(aStar(scenario, entry, exit, MAX_SPEED)!.time));
+    return cache.get(key)!;
+  };
 }
 
 const speedOf = (road: Road): number => Math.min(road.speed ?? MAX_SPEED, MAX_SPEED);

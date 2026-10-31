@@ -1,10 +1,10 @@
-import { aStar, Step } from '../topology/astar';
+import { Step } from '../topology/astar';
 import { MAX_SPEED } from '../topology/roadMap';
 import { Road, Scenario } from '../topology/types';
 import { Trip } from './demand';
 import { computeMetrics, Metrics } from './metrics';
-import { Planner } from './routing';
-import { congestedSpeed, congestionRatio, tilesPerSecond, toSeconds } from './traffic';
+import { freeFlowSeconds, Planner } from './routing';
+import { congestedSpeed, congestionRatio, tilesPerSecond } from './traffic';
 
 export interface Vehicle {
   trip: Trip,
@@ -27,14 +27,9 @@ export class Simulation {
   private next = 0; // index of the next vehicle waiting to depart
 
   constructor(scenario: Scenario, trips: Trip[], private readonly planner: Planner) {
-    const ideal = new Map<string, number>();
-    const idealTime = (trip: Trip): number => {
-      const key = `${trip.entry}>${trip.exit}`;
-      if (!ideal.has(key)) ideal.set(key, toSeconds(aStar(scenario, trip.entry, trip.exit, MAX_SPEED)!.time));
-      return ideal.get(key)!;
-    };
+    const idealTime = freeFlowSeconds(scenario);
     this.vehicles = [...trips].sort((a, b) => a.departure - b.departure)
-      .map(trip => ({ trip, departure: trip.departure, idealTime: idealTime(trip), route: [], progress: 0 }));
+      .map(trip => ({ trip, departure: trip.departure, idealTime: idealTime(trip.entry, trip.exit), route: [], progress: 0 }));
   }
 
   get done(): boolean {
