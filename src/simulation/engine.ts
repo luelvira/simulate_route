@@ -44,7 +44,11 @@ export class Simulation {
     return this.vehicles.slice(0, this.next).filter(v => v.arrival === undefined);
   }
 
-  /** Highest share of the jam density each road has reached, keyed by road id. */
+  /**
+   * Highest share of the jam density each road has reached, counted as the
+   * other vehicles a driver shares it with (the quantity maxCongestion
+   * reports), keyed by road id.
+   */
   congestionHistory(): ReadonlyMap<string, number> {
     return this.history;
   }
@@ -94,7 +98,7 @@ export class Simulation {
   private enter(road: Road): void {
     const vehicles = (this.load.get(road) ?? 0) + 1;
     this.load.set(road, vehicles);
-    this.history.set(road.id, Math.max(this.history.get(road.id) ?? 0, congestionRatio(vehicles, road.cost)));
+    this.history.set(road.id, Math.max(this.history.get(road.id) ?? 0, congestionRatio(vehicles - 1, road.cost)));
   }
 
   private leave(road: Road): void {

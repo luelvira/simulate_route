@@ -133,7 +133,7 @@ describe('Feature: Congestion history for the map', () => {
       simulation.step(1);
 
       expect(simulation.congestionHistory().get(first.id))
-        .toBeCloseTo(congestionRatio(crowd.length, first.cost), 6);
+        .toBeCloseTo(congestionRatio(crowd.length - 1, first.cost), 6);
     });
   });
 
@@ -142,12 +142,39 @@ describe('Feature: Congestion history for the map', () => {
       const planner = freeFlowPlanner(map);
       const crowd = crowdOnSameRoute();
       const first = planner.plan(crowd[0])[0].road;
-      const peak = congestionRatio(crowd.length, first.cost);
+      const peak = congestionRatio(crowd.length - 1, first.cost);
 
       const simulation = runToEnd(new Simulation(map, crowd, planner));
 
       expect(simulation.done).toBe(true);
       expect(simulation.congestionHistory().get(first.id)).toBeCloseTo(peak, 6);
+    });
+  });
+
+  describe('When a vehicle drives alone', () => {
+    it('should leave every road it drives on uncoloured', () => {
+      // Arrange
+      const planner = freeFlowPlanner(map);
+      const trip: Trip = { id: 0, entry: map.entries[0], exit: map.exits[0], departure: 0, target: 0 };
+
+      // Act
+      const simulation = runToEnd(new Simulation(map, [trip], planner));
+
+      // Assert
+      for (const ratio of simulation.congestionHistory().values()) expect(ratio).toBe(0);
+    });
+  });
+
+  describe('When the simulation ends', () => {
+    it('should paint no road above the reported maximum congestion', () => {
+      // Arrange
+      const simulation = runToEnd(new Simulation(map, trips, freeFlowPlanner(map)));
+
+      // Act
+      const peak = Math.max(...simulation.congestionHistory().values());
+
+      // Assert
+      expect(peak * 100).toBeLessThanOrEqual(simulation.metrics().maxCongestion);
     });
   });
 });
