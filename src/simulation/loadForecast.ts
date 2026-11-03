@@ -77,9 +77,13 @@ export class LoadForecast {
     for (let slot = slotOf(enter); slot <= slotOf(leave); slot++) this.add(road, slot, 1);
   }
 
+  /** Vehicles booked on a road at a time (s). */
+  load(road: Road, seconds: number): number {
+    return this.booked.get(road)?.get(slotOf(seconds)) ?? 0;
+  }
+
   private cappedTime(road: Road, seconds: number): number {
-    const vehicles = this.booked.get(road)?.get(slotOf(seconds)) ?? 0;
-    return congestionRatio(vehicles + 1, road.cost) > this.capacity ? Infinity : this.roadTime(road, seconds);
+    return congestionRatio(this.load(road, seconds) + 1, road.cost) > this.capacity ? Infinity : this.roadTime(road, seconds);
   }
 
   private add(road: Road, slot: number, vehicles: number): void {
@@ -89,7 +93,7 @@ export class LoadForecast {
   }
 
   private roadTime(road: Road, seconds: number): number {
-    const vehicles = this.booked.get(road)?.get(slotOf(seconds)) ?? 0;
+    const vehicles = this.load(road, seconds);
     return road.cost / this.speed(Math.min(road.speed ?? MAX_SPEED, MAX_SPEED), vehicles, road.cost);
   }
 }

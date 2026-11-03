@@ -20,7 +20,8 @@ export interface Visit { road: Road, enter: number, leave: number }
 /** Trajectory of every vehicle and the vehicles flagged for re-planning, keyed by trip id. */
 export interface Replay { visits: Map<number, Visit[]>, offenders: Set<number> }
 
-interface Schedule { departure: number, steps: Step[] }
+/** Departure (s) and route of one trip. */
+export interface Schedule { departure: number, steps: Step[] }
 
 /**
  * Simulates a plan with a 1 s step, recording the roads each vehicle drove
@@ -69,6 +70,19 @@ function reschedule(trip: Trip, forecast: LoadForecast): Schedule | undefined {
 }
 
 /**
+ * Re-plans the flagged vehicles in target order on `forecast`, booking each
+ * new schedule so the next ones see it, and updates `schedules` in place. A
+ * vehicle with no departure within the capacity keeps and books its schedule.
+ */
+export function replanFlagged(forecast: LoadForecast, flagged: Trip[], schedules: Map<number, Schedule>): void {
+  for (const trip of [...flagged].sort((a, b) => a.target - b.target || a.id - b.id)) {
+    const schedule = reschedule(trip, forecast) ?? schedules.get(trip.id)!;
+    forecast.book(schedule.steps, schedule.departure);
+    schedules.set(trip.id, schedule);
+  }
+}
+
+/**
  * Central plan repair: the plan is simulated, the vehicles that drove on a
  * road at HOT_RATIO or more of its jam density are re-planned on a forecast
  * built from the simulated trajectories of all the others, and the plan is
@@ -88,13 +102,7 @@ export function repairPlan(scenario: Scenario, trips: Trip[], planner: Planner):
     for (const [id, trajectory] of visits) {
       if (!offenders.has(id)) trajectory.forEach(({ road, enter, leave }) => forecast.occupy(road, enter, leave));
     }
-    const flagged = trips.filter(trip => offenders.has(trip.id)).sort((a, b) => a.target - b.target || a.id - b.id);
-    for (const trip of flagged) {
-      const schedule = reschedule(trip, forecast);
-      if (!schedule) continue;
-      forecast.book(schedule.steps, schedule.departure);
-      schedules.set(trip.id, schedule);
-    }
+    replanFlagged(forecast, trips.filter(trip => offenders.has(trip.id)), schedules);
   }
   return repaired;
 }

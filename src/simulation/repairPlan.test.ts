@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { Step } from '../topology/astar';
+import { Step, stepsFrom } from '../topology/astar';
 import { generateRoadMap } from '../topology/roadMap';
-import { centralPlanner, MAX_DELAY } from './centralPlanner';
+import { CAPACITY_RATIO, centralPlanner, MAX_DELAY } from './centralPlanner';
 import { demandRandom, generateDemand, Trip } from './demand';
 import { Simulation } from './engine';
-import { HOT_RATIO, repairPlan, replay } from './repairPlan';
+import { ASSIGNMENT_SLOT, LoadForecast } from './loadForecast';
+import { HOT_RATIO, repairPlan, replanFlagged, replay } from './repairPlan';
 import { balancedPlanner, freeFlowPlanner, freeFlowSeconds, Planner } from './routing';
-import { JAM_DENSITY, MIN_DENSITY_LENGTH } from './traffic';
+import { congestionRatio, JAM_DENSITY, MIN_DENSITY_LENGTH, queuedSpeed } from './traffic';
 
 const demo = generateRoadMap({ rows: 18, cols: 24, entryCount: 12, exitCount: 4, blockSize: 7, seed: 47 });
 const ideal = freeFlowSeconds(demo);
@@ -66,6 +67,49 @@ describe('Feature: Replaying a plan in the simulation', () => {
 
       // Assert
       expect(offenders.size).toBe(size);
+    });
+  });
+});
+
+describe('Feature: Re-planning flagged vehicles', () => {
+
+  describe('When a flagged vehicle finds no departure within the capacity', () => {
+    const [trip] = demand(1);
+    const end = trip.departure + 2 * MAX_DELAY;
+    const blockedForecast = (): LoadForecast => {
+      const forecast = new LoadForecast(demo, queuedSpeed, CAPACITY_RATIO);
+      for (const { road } of stepsFrom(demo, trip.entry)) {
+        let vehicles = 0;
+        while (congestionRatio(vehicles + 1, road.cost) <= CAPACITY_RATIO) vehicles++;
+        for (let i = 0; i < vehicles; i++) forecast.occupy(road, 0, end);
+      }
+      return forecast;
+    };
+    const steps = freeFlowPlanner(demo).plan(trip);
+
+    it('should keep its current schedule', () => {
+      // Arrange
+      const schedules = new Map([[trip.id, { departure: trip.departure, steps }]]);
+
+      // Act
+      replanFlagged(blockedForecast(), [trip], schedules);
+
+      // Assert
+      expect(schedules.get(trip.id)).toEqual({ departure: trip.departure, steps });
+    });
+
+    it('should still book it, so vehicles re-planned after it see its roads busy', () => {
+      // Arrange
+      const forecast = blockedForecast();
+      const last = steps.at(-1)!.road;
+      const slots = Math.ceil((end + MAX_DELAY) / ASSIGNMENT_SLOT);
+
+      // Act
+      replanFlagged(forecast, [trip], new Map([[trip.id, { departure: trip.departure, steps }]]));
+
+      // Assert
+      const busy = Array.from({ length: slots }, (_, slot) => forecast.load(last, slot * ASSIGNMENT_SLOT));
+      expect(busy.some(vehicles => vehicles > 0)).toBe(true);
     });
   });
 });
