@@ -148,6 +148,19 @@ describe('Feature: Re-planning flagged vehicles', () => {
 
 describe('Feature: Repairing the central plan', () => {
 
+  describe('When a vehicle has the network to itself', () => {
+    it('should leave at its nominal departure', () => {
+      // Arrange
+      const [trip] = demand(1);
+
+      // Act
+      const repaired = repairPlan(demo, [trip], centralPlanner(demo, [trip]));
+
+      // Assert
+      expect(repaired.departure!(trip)).toBe(trip.departure);
+    });
+  });
+
   describe('When no road reaches the hot share of its jam density', () => {
     it('should keep the central plan unchanged', () => {
       // Arrange
@@ -188,6 +201,18 @@ describe('Feature: Repairing the central plan', () => {
       // Assert
       expect(after.avgTravelTime).toBeLessThanOrEqual(before.avgTravelTime);
       expect(after.onTime).toBeGreaterThanOrEqual(before.onTime);
+    }, 120_000);
+
+    it('should delay only vehicles that would arrive late anyway', () => {
+      // Arrange
+      const simulation = new Simulation(demo, trips, repaired);
+      while (!simulation.done) simulation.step(1);
+
+      // Act
+      const delayed = simulation.vehicles.filter(vehicle => vehicle.departure > vehicle.trip.departure);
+
+      // Assert
+      for (const vehicle of delayed) expect(vehicle.arrival!).toBeGreaterThan(vehicle.trip.target);
     }, 120_000);
 
     it('should keep every departure between the simulation start and the longest delay', () => {
