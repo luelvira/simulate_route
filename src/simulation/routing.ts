@@ -1,4 +1,5 @@
 import { aStar, Step } from '../topology/astar';
+import { bfsRoutes } from '../topology/bfs';
 import { MAX_SPEED } from '../topology/roadMap';
 import { NodeId, Scenario } from '../topology/types';
 import { Trip } from './demand';
@@ -36,13 +37,25 @@ export function freeFlowPlanner(scenario: Scenario): Planner {
   return { plan: trip => route(scenario, trip.entry, trip) };
 }
 
+/** Number of routes the unguided drivers of the same journey spread over. */
+export const UNGUIDED_ROUTES = 3;
+
 /**
- * Base scenario: drivers follow the fastest route of the empty network
- * (Dijkstra) without guidance, so they drive below the allowed speed while
- * looking for the way.
+ * Base scenario: drivers know no speed limits, only the map, so they take
+ * one of the routes with the fewest roads (BFS), in turns per journey, and
+ * drive below the allowed speed while looking for the way.
  */
 export function unguidedPlanner(scenario: Scenario): Planner {
-  return { speedFactor: HESITATION_FACTOR, plan: freeFlowPlanner(scenario).plan };
+  const cache = new Map<string, Step[][]>();
+  const routesOf = (trip: Trip): Step[][] => {
+    const key = `${trip.entry}>${trip.exit}`;
+    if (!cache.has(key)) cache.set(key, bfsRoutes(scenario, trip.entry, trip.exit, UNGUIDED_ROUTES));
+    return cache.get(key)!;
+  };
+  return {
+    speedFactor: HESITATION_FACTOR,
+    plan: trip => { const routes = routesOf(trip); return routes[trip.id % routes.length]; },
+  };
 }
 
 /**

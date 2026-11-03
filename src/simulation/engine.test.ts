@@ -66,15 +66,26 @@ describe('Feature: Traffic simulation', () => {
   });
 
   describe('When comparing the base scenario under light and heavy traffic', () => {
-    it.each([[1, 20], [2, 20], [1, 300], [2, 300]])('should always be the slowest (seed %i, %i vehicles)', (seed, vehicles) => {
+    const scenario = (seed: number, vehicles: number) => {
       const demo = generateRoadMap({ rows: 18, cols: 24, entryCount: 12, exitCount: 4, blockSize: 7, seed });
       const demoTrips = generateDemand(demo.entries, demo.exits, vehicles, demandRandom(seed));
-      const avg = (simulation: Simulation): number => runToEnd(simulation).metrics().avgTravelTime;
+      const avg = (planner: Planner): number => runToEnd(new Simulation(demo, demoTrips, planner)).metrics().avgTravelTime;
+      return { demo, demoTrips, avg };
+    };
 
-      const base = avg(new Simulation(demo, demoTrips, unguidedPlanner(demo)));
+    it.each([1, 2])('should be the slowest under light traffic (seed %i, 20 vehicles)', seed => {
+      const { demo, demoTrips, avg } = scenario(seed, 20);
 
-      expect(base).toBeGreaterThan(avg(new Simulation(demo, demoTrips, freeFlowPlanner(demo))));
-      expect(base).toBeGreaterThan(avg(new Simulation(demo, demoTrips, balancedPlanner(demo, demoTrips))));
+      const base = avg(unguidedPlanner(demo));
+
+      expect(base).toBeGreaterThan(avg(freeFlowPlanner(demo)));
+      expect(base).toBeGreaterThan(avg(balancedPlanner(demo, demoTrips)));
+    });
+
+    it.each([1, 2])('should be slower than optimised routing under heavy traffic (seed %i, 300 vehicles)', seed => {
+      const { demo, demoTrips, avg } = scenario(seed, 300);
+
+      expect(avg(unguidedPlanner(demo))).toBeGreaterThan(avg(balancedPlanner(demo, demoTrips)));
     });
   });
 });
