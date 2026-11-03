@@ -6,7 +6,7 @@ import { Planner } from './routing';
 /** Departure and route of one trip as plain data: [road id, node it is entered from] per road. */
 export interface PlannedTrip { departure: number, steps: [string, NodeId][] }
 
-/** Plain-data plan of every trip by trip id, so it can cross to and from a worker. */
+/** Plain-data plan of every trip by trip id, so it can travel from the planning server to the page. */
 export type PlanTable = Map<number, PlannedTrip>;
 
 /** Captures the departure and route a planner gives every trip. */
