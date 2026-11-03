@@ -17,12 +17,12 @@ export function toPlanTable(planner: Planner, trips: Trip[]): PlanTable {
   }]));
 }
 
-/** Planner that replays a plan table on the roads of `scenario`. */
-export function fromPlanTable(table: PlanTable, scenario: Scenario): Planner {
+/** Planner that replays a plan table on the roads of `scenario`, its drivers at `speedFactor` of the allowed speed. */
+export function fromPlanTable(table: PlanTable, scenario: Scenario, speedFactor?: number): Planner {
   const roads = new Map(scenario.roads.map(road => [road.id, road]));
   const steps = (trip: Trip): Step[] => table.get(trip.id)!.steps.map(([id, from]) => {
     const road = roads.get(id)!;
     return { road, from, to: road.from === from ? road.to : road.from };
   });
-  return { plan: steps, departure: trip => table.get(trip.id)!.departure };
+  return { speedFactor, plan: steps, departure: trip => table.get(trip.id)!.departure };
 }

@@ -22,4 +22,25 @@ describe('Feature: Plans computed away from the page', () => {
       for (const trip of trips) expect(restored.departure!(trip)).toBe(original.departure(trip));
     });
   });
+
+  describe('When a plan is replayed for drivers who hesitate', () => {
+    it('should drive the replayed plan at the given share of the allowed speed', () => {
+      // Arrange
+      const table = toPlanTable(centralPlanner(map, trips), trips);
+
+      // Act
+      const replayed = fromPlanTable(table, map, 0.9);
+
+      // Assert
+      expect(replayed.speedFactor).toBe(0.9);
+    });
+
+    it('should drive at the allowed speed when no share is given', () => {
+      // Act
+      const replayed = fromPlanTable(toPlanTable(centralPlanner(map, trips), trips), map);
+
+      // Assert
+      expect(replayed.speedFactor ?? 1).toBe(1);
+    });
+  });
 });
