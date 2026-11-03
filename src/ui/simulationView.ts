@@ -2,7 +2,7 @@ import { demandRandom, generateDemand, Trip } from '../simulation/demand';
 import { positionOf, Simulation } from '../simulation/engine';
 import { Metrics } from '../simulation/metrics';
 import { fromPlanTable } from '../simulation/planTable';
-import type { PrecomputedPlans } from '../simulation/plans.worker';
+import type { PrecomputedPlans } from '../simulation/precomputePlans';
 import { freeFlowPlanner, freeFlowSeconds, unguidedPlanner } from '../simulation/routing';
 import { renderCongestion, renderRoadMap, renderVehicles } from '../topology/render';
 import { generateRoadMap } from '../topology/roadMap';
@@ -13,11 +13,11 @@ type ScenarioKey = 'base' | 'astar' | 'optimized' | 'central';
 
 const STEP_SECONDS = 1;
 
-interface Session { map: Scenario, trips: Trip[], plans: PrecomputedPlans, runs: Record<ScenarioKey, Simulation> }
+interface Session { map: Scenario, trips: Trip[], plans: Pick<PrecomputedPlans, 'optimized' | 'central'>, runs: Record<ScenarioKey, Simulation> }
 
 const byId = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 
-function createRuns(map: Scenario, trips: Trip[], plans: PrecomputedPlans): Record<ScenarioKey, Simulation> {
+function createRuns(map: Scenario, trips: Trip[], plans: Pick<PrecomputedPlans, 'optimized' | 'central'>): Record<ScenarioKey, Simulation> {
   return {
     base: new Simulation(map, trips, unguidedPlanner(map)),
     astar: new Simulation(map, trips, freeFlowPlanner(map)),
