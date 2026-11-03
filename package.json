@@ -9,7 +9,9 @@
     "dev": "vite",
     "lint": "eslint src",
     "e2e": "playwright test",
-    "a11y": "vite build && node scripts/a11y-audit.mjs"
+    "a11y": "vite build && node scripts/a11y-audit.mjs",
+    "server": "tsx watch src/server/main.ts",
+    "start": "vite build && tsx src/server/main.ts"
   },
   "keywords": [],
   "author": "Lucas Elvira Martín <lucas.elvira@upm.es>",
@@ -17,14 +19,18 @@
   "packageManager": "pnpm@12.15.0",
   "type": "module",
   "dependencies": {
+    "@hono/node-server": "^2.1.6",
     "d3": "^7.9.0",
-    "lucide": "^1.64.0"
+    "hono": "^4.13.16",
+    "lucide": "^1.64.0",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/d3": "^7.4.3",
+    "@types/node": "^26.6.6",
     "axe-core": "^4.14.0",
     "eslint": "^10.13.0",
     "eslint-import-resolver-typescript": "^4.4.5",
