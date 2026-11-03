@@ -41,7 +41,9 @@ export function replay(scenario: Scenario, trips: Trip[], planner: Planner): Rep
       const road = vehicle.route[0]?.road;
       const current = open.get(id);
       if (current && current.road !== road) {
-        visits.set(id, [...(visits.get(id) ?? []), { ...current, leave: simulation.time }]);
+        const trajectory = visits.get(id) ?? [];
+        trajectory.push({ ...current, leave: simulation.time });
+        visits.set(id, trajectory);
         open.delete(id);
       }
       if (road && !open.has(id)) open.set(id, { road, enter: simulation.time });
