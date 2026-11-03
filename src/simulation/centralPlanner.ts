@@ -6,7 +6,7 @@ import { Planner } from './routing';
 import { queuedSpeed } from './traffic';
 
 /** Longest a departure may be delayed past its nominal time (s). */
-export const MAX_DELAY = 1800;
+export const MAX_DELAY = 3600;
 /** Delayed departures are tried every this many forecast slots. */
 export const DELAY_STEP_SLOTS = 4;
 /**
@@ -15,7 +15,7 @@ export const DELAY_STEP_SLOTS = 4;
  */
 export const PASSES = 2;
 /** Weight of each second waiting at the destination against a second on the road. */
-export const EARLY_ARRIVAL_WEIGHT = 0.5;
+export const EARLY_ARRIVAL_WEIGHT = 0.25;
 
 interface Schedule { departure: number, steps: Step[], arrival: number }
 
