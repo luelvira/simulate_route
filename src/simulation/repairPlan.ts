@@ -4,12 +4,13 @@ import { CAPACITY_RATIO, DELAY_STEP_SLOTS, EARLY_ARRIVAL_WEIGHT, MAX_DELAY } fro
 import { Trip } from './demand';
 import { Simulation } from './engine';
 import { ASSIGNMENT_SLOT, LoadForecast } from './loadForecast';
+import { Metrics } from './metrics';
 import { Planner } from './routing';
 import { congestionRatio, queuedSpeed } from './traffic';
 
 /** Share of the jam density at which a simulated road flags the vehicles on it for re-planning. */
 export const HOT_RATIO = 0.9;
-/** Most simulate-and-re-plan rounds of the repair. */
+/** Most re-plan rounds of the repair; each one is simulated before the best plan is chosen. */
 export const REPAIR_ROUNDS = 4;
 /** Weight of each second late against a second on the road when a flagged vehicle is re-planned. */
 export const LATE_WEIGHT = 10;
@@ -17,8 +18,8 @@ export const LATE_WEIGHT = 10;
 /** One road a simulated vehicle drove on, with the times (s) it entered and left it. */
 export interface Visit { road: Road, enter: number, leave: number }
 
-/** Trajectory of every vehicle and the vehicles flagged for re-planning, keyed by trip id. */
-export interface Replay { visits: Map<number, Visit[]>, offenders: Set<number> }
+/** Trajectory of every vehicle and the vehicles flagged for re-planning, keyed by trip id, and the plan's metrics. */
+export interface Replay { visits: Map<number, Visit[]>, offenders: Set<number>, metrics: Metrics }
 
 /** Departure (s) and route of one trip. */
 export interface Schedule { departure: number, steps: Step[] }
@@ -47,7 +48,7 @@ export function replay(scenario: Scenario, trips: Trip[], planner: Planner): Rep
       if (road && congestionRatio(simulation.others(road), road.cost) >= HOT_RATIO) offenders.add(id);
     }
   }
-  return { visits, offenders };
+  return { visits, offenders, metrics: simulation.metrics() };
 }
 
 /**
@@ -82,27 +83,39 @@ export function replanFlagged(forecast: LoadForecast, flagged: Trip[], schedules
   }
 }
 
+/** Whether plan outcome `a` beats `b`: a lower peak congestion first, then less time on the road. */
+export function fewerJams(a: Metrics, b: Metrics): boolean {
+  return a.maxCongestion < b.maxCongestion
+    || (a.maxCongestion === b.maxCongestion && a.avgTravelTime < b.avgTravelTime);
+}
+
+const asPlanner = (schedules: Map<number, Schedule>): Planner => ({
+  plan: trip => schedules.get(trip.id)!.steps,
+  departure: trip => schedules.get(trip.id)!.departure,
+});
+
 /**
  * Central plan repair: the plan is simulated, the vehicles that drove on a
  * road at HOT_RATIO or more of its jam density are re-planned on a forecast
- * built from the simulated trajectories of all the others, and the plan is
- * simulated again, at most REPAIR_ROUNDS times or until no vehicle is flagged.
+ * built from the simulated trajectories of all the others, and the new plan
+ * is simulated again, until no vehicle is flagged or REPAIR_ROUNDS re-plans
+ * have run. Every candidate is simulated, and the one with the fewest jams
+ * (see fewerJams) is returned, the original plan included.
  */
 export function repairPlan(scenario: Scenario, trips: Trip[], planner: Planner): Planner {
-  const schedules = new Map(trips.map(trip =>
+  let schedules = new Map(trips.map(trip =>
     [trip.id, { departure: planner.departure?.(trip) ?? trip.departure, steps: planner.plan(trip) }]));
-  const repaired: Planner = {
-    plan: trip => schedules.get(trip.id)!.steps,
-    departure: trip => schedules.get(trip.id)!.departure,
-  };
-  for (let round = 0; round < REPAIR_ROUNDS; round++) {
-    const { visits, offenders } = replay(scenario, trips, repaired);
-    if (offenders.size === 0) break;
+  let best: { schedules: Map<number, Schedule>, metrics: Metrics } | undefined;
+  for (let round = 0; ; round++) {
+    const { visits, offenders, metrics } = replay(scenario, trips, asPlanner(schedules));
+    if (!best || fewerJams(metrics, best.metrics)) best = { schedules, metrics };
+    if (offenders.size === 0 || round === REPAIR_ROUNDS) break;
     const forecast = new LoadForecast(scenario, queuedSpeed, CAPACITY_RATIO);
     for (const [id, trajectory] of visits) {
       if (!offenders.has(id)) trajectory.forEach(({ road, enter, leave }) => forecast.occupy(road, enter, leave));
     }
+    schedules = new Map(schedules);
     replanFlagged(forecast, trips.filter(trip => offenders.has(trip.id)), schedules);
   }
-  return repaired;
+  return asPlanner(best!.schedules);
 }

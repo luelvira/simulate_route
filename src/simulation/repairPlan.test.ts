@@ -5,7 +5,8 @@ import { CAPACITY_RATIO, centralPlanner, MAX_DELAY } from './centralPlanner';
 import { demandRandom, generateDemand, Trip } from './demand';
 import { Simulation } from './engine';
 import { ASSIGNMENT_SLOT, LoadForecast } from './loadForecast';
-import { HOT_RATIO, repairPlan, replanFlagged, replay } from './repairPlan';
+import { Metrics } from './metrics';
+import { fewerJams, HOT_RATIO, repairPlan, replanFlagged, replay } from './repairPlan';
 import { balancedPlanner, freeFlowPlanner, freeFlowSeconds, Planner } from './routing';
 import { congestionRatio, JAM_DENSITY, MIN_DENSITY_LENGTH, queuedSpeed } from './traffic';
 
@@ -43,6 +44,14 @@ describe('Feature: Replaying a plan in the simulation', () => {
       for (const visit of visits.get(trip.id)!) expect(visit.enter).toBeLessThan(visit.leave);
     });
 
+    it('should report the same metrics as a full simulation of the plan', () => {
+      // Act
+      const { metrics } = replay(demo, [trip], planner);
+
+      // Assert
+      expect(metrics).toEqual(finalMetrics(planner, [trip]));
+    });
+
     it('should flag no vehicle as driving on a congested road', () => {
       // Act
       const { offenders } = replay(demo, [trip], planner);
@@ -67,6 +76,29 @@ describe('Feature: Replaying a plan in the simulation', () => {
 
       // Assert
       expect(offenders.size).toBe(size);
+    });
+  });
+});
+
+describe('Feature: Choosing between repaired plans', () => {
+  const outcome = (maxCongestion: number, avgTravelTime: number): Metrics =>
+    ({ maxCongestion, avgTravelTime } as Metrics);
+
+  describe('When two plans reach different peak congestion', () => {
+    it('should prefer the plan with the lower peak even if its vehicles drive longer', () => {
+      expect(fewerJams(outcome(60, 2200), outcome(100, 2000))).toBe(true);
+      expect(fewerJams(outcome(100, 2000), outcome(60, 2200))).toBe(false);
+    });
+  });
+
+  describe('When two plans reach the same peak congestion', () => {
+    it('should prefer the plan whose vehicles spend less time on the road', () => {
+      expect(fewerJams(outcome(60, 2000), outcome(60, 2100))).toBe(true);
+      expect(fewerJams(outcome(60, 2100), outcome(60, 2000))).toBe(false);
+    });
+
+    it('should keep the earlier plan when both are equally good', () => {
+      expect(fewerJams(outcome(60, 2000), outcome(60, 2000))).toBe(false);
     });
   });
 });
