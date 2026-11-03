@@ -16,6 +16,8 @@ export const DELAY_STEP_SLOTS = 4;
 export const PASSES = 2;
 /** Weight of each second waiting at the destination against a second on the road. */
 export const EARLY_ARRIVAL_WEIGHT = 0.25;
+/** Highest share of a road's jam density a central booking may create. */
+export const CAPACITY_RATIO = 0.7;
 
 interface Schedule { departure: number, steps: Step[], arrival: number }
 
@@ -32,13 +34,15 @@ const roadTime = (s: Schedule): number => s.arrival - s.departure;
  * that cannot arrive on time at all is the only one ever delayed: it takes
  * the departure with the shortest road time, moving it out of the peak so
  * the roads stay free for vehicles that can still make it.
+ * Bookings respect CAPACITY_RATIO: a road slot that would exceed it is
+ * avoided by changing route or departure.
  */
 export function centralPlanner(scenario: Scenario, trips: Trip[]): Planner & {
   departure(trip: Trip): number,
   arrival(trip: Trip): number,
 } {
   // ponytail: two greedy passes, no iteration to equilibrium
-  const forecast = new LoadForecast(scenario, queuedSpeed);
+  const forecast = new LoadForecast(scenario, queuedSpeed, CAPACITY_RATIO);
   const schedules = new Map<number, Schedule>();
   const bookings = new Map<number, Booking>();
   const at = (trip: Trip, departure: number): Schedule => ({ departure, ...forecast.route(trip, departure) });
@@ -84,6 +88,7 @@ function latestOnTime(trip: Trip, at: (trip: Trip, departure: number) => Schedul
   if (nominal.arrival <= trip.target) return nominal;
   let best = at(trip, 0);
   if (best.arrival > trip.target) return undefined;
+  // ponytail: capacity gaps make on-time departures non-contiguous; the search may miss an isolated feasible second
   for (let [early, late] = [0, trip.departure]; late - early > 1;) {
     const middle = Math.floor((early + late) / 2);
     const candidate = at(trip, middle);

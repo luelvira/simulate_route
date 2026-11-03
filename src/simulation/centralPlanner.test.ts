@@ -27,6 +27,19 @@ describe('Feature: Centralized scheduling', () => {
     });
   });
 
+  describe('When 150 vehicles share the network', () => {
+    it('should keep every road well below its jam density', () => {
+      // Arrange
+      const trips = generateDemand(demo.entries, demo.exits, 150, demandRandom(47), ideal);
+
+      // Act
+      const metrics = finalMetrics(centralPlanner(demo, trips), trips);
+
+      // Assert
+      expect(metrics.maxCongestion).toBeLessThan(60);
+    }, 120_000);
+  });
+
   describe('When the network is saturated', () => {
     const trips = generateDemand(demo.entries, demo.exits, 500, demandRandom(47), ideal);
     const planner = centralPlanner(demo, trips);
