@@ -26,12 +26,18 @@ export class LoadForecast {
 
   private readonly stretch: number;
 
-  /** `capacity`: highest share of the jam density a road may reach, counting the planned vehicle. */
+  /**
+   * `capacity`: highest share of the jam density a road may reach, counting
+   * the planned vehicle; Infinity (no limit) or a share strictly between 0 and 1.
+   */
   constructor(
     private readonly scenario: Scenario,
     private readonly speed: SpeedModel,
     private readonly capacity = Infinity,
   ) {
+    if (capacity !== Infinity && !(capacity > 0 && capacity < 1)) {
+      throw new RangeError(`Road capacity must be a share between 0 and 1, got ${capacity}`);
+    }
     this.stretch = Number.isFinite(capacity) ? 1 / (1 - capacity) : 1;
   }
 

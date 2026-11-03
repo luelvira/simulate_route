@@ -49,6 +49,18 @@ describe('Feature: Time-dependent traffic forecast', () => {
     });
   });
 
+  describe('When the road capacity is not a share of the jam density', () => {
+    it('should refuse a capacity of the full jam density or more', () => {
+      expect(() => new LoadForecast(map, congestedSpeed, 1)).toThrow(RangeError);
+      expect(() => new LoadForecast(map, congestedSpeed, 1.5)).toThrow(RangeError);
+    });
+
+    it('should refuse a capacity of zero or less', () => {
+      expect(() => new LoadForecast(map, congestedSpeed, 0)).toThrow(RangeError);
+      expect(() => new LoadForecast(map, congestedSpeed, -0.2)).toThrow(RangeError);
+    });
+  });
+
   describe('When a road capacity is set', () => {
     const capacity = 0.7;
     const blockingLoad = (road: Road): number => {
