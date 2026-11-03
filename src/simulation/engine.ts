@@ -87,7 +87,7 @@ export class Simulation {
   }
 
   /** Vehicles sharing the road with any given vehicle on it. */
-  private others(road: Road): number {
+  others(road: Road): number {
     return Math.max(0, (this.load.get(road) ?? 0) - 1);
   }
 
