@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { congestionStyle } from './congestion';
 import { MAX_SPEED } from './roadMap';
 import { Road, Scenario } from './types';
 
@@ -26,6 +27,7 @@ export function renderRoadMap(container: HTMLElement, scenario: Scenario): void 
   layer('lanes').attr('stroke', r => speedColor(r.speed ?? MAX_SPEED)).attr('stroke-width', 1.5)
     .attr('stroke-dasharray', r => ((r.speed ?? MAX_SPEED) >= 80 ? null : '6 5'))
     .append('title').text(r => `${r.from} → ${r.to} · ${r.cost} tiles · ${r.speed} km/h`);
+  layer('congestion').attr('stroke-width', r => Math.max(2, width(r) - 2)).style('pointer-events', 'none');
 
   // A roundabout is a 2x2 block of ring tiles; draw it centred on its top-left tile's corner.
   const ring = new Set(scenario.nodes.filter(n => n.kind === 'roundabout').map(n => n.id));
@@ -45,6 +47,14 @@ export function renderRoadMap(container: HTMLElement, scenario: Scenario): void 
     .attr('r', n => (entries.has(n.id) || exits.has(n.id) ? TILE * 0.4 : TILE * 0.2))
     .attr('fill', n => (entries.has(n.id) ? '#2e7d32' : exits.has(n.id) ? '#c62828' : '#5c6168'))
     .append('title').text(n => `${n.id} · ${n.kind}`);
+}
+
+/** Paints the roads in use with their congestion colour and fades the empty ones back to asphalt. */
+export function renderCongestion(container: HTMLElement, congestion: ReadonlyMap<string, number>): void {
+  d3.select(container).select<SVGGElement>('g.congestion')
+    .selectAll<SVGPathElement, Road>('path')
+    .attr('stroke', road => congestionStyle(congestion.get(road.id) ?? 0).color)
+    .attr('stroke-opacity', road => congestionStyle(congestion.get(road.id) ?? 0).opacity);
 }
 
 /** Draws (or moves) one dot per vehicle at its tile position; positions are keyed by vehicle id. */

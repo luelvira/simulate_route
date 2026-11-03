@@ -4,7 +4,7 @@ import { Metrics } from '../simulation/metrics';
 import { fromPlanTable } from '../simulation/planTable';
 import type { PrecomputedPlans } from '../simulation/plans.worker';
 import { freeFlowPlanner, freeFlowSeconds, unguidedPlanner } from '../simulation/routing';
-import { renderRoadMap, renderVehicles } from '../topology/render';
+import { renderCongestion, renderRoadMap, renderVehicles } from '../topology/render';
 import { generateRoadMap } from '../topology/roadMap';
 import { Scenario } from '../topology/types';
 import { readConfig } from './configControls';
@@ -72,6 +72,7 @@ export function initSimulation(form: HTMLFormElement): void {
   const draw = (): void => {
     if (!session) return;
     const run = session.runs[animated.value as ScenarioKey];
+    renderCongestion(app, run.congestionHistory());
     renderVehicles(app, run.active().flatMap(v => {
       const position = positionOf(v);
       return position ? [[v.trip.id, position] as [number, [number, number]]] : [];
