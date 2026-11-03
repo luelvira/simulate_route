@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { createRandom, generateRoadMap } from '../topology/roadMap';
+import { stepsFrom } from '../topology/astar';
+import { createRandom, generateRoadMap, MAX_SPEED } from '../topology/roadMap';
 import { demandRandom, generateDemand, Trip } from './demand';
 import { positionOf, Simulation, Vehicle } from './engine';
 import { Road } from '../topology/types';
@@ -174,6 +175,27 @@ describe('Feature: Congestion history for the map', () => {
       const peak = Math.max(...simulation.congestionHistory().values());
 
       // Assert
+      expect(peak * 100).toBeLessThanOrEqual(simulation.metrics().maxCongestion);
+    });
+  });
+
+  describe('When a vehicle enters a road in the same step another one leaves it', () => {
+    it('should paint the road no hotter than the reported maximum congestion', () => {
+      // Arrange
+      const [before, after] = map.nodes.flatMap(({ id }) => stepsFrom(map, id).flatMap(first =>
+        stepsFrom(map, first.to)
+          .filter(next => next.road !== first.road && next.road.cost === first.road.cost &&
+            (next.road.speed ?? MAX_SPEED) === (first.road.speed ?? MAX_SPEED))
+          .map(next => [first, next])))[0];
+      const follower: Trip = { id: 0, entry: before.from, exit: after.to, departure: 0, target: 0 };
+      const leader: Trip = { id: 1, entry: after.from, exit: after.to, departure: 0, target: 0 };
+      const planner: Planner = { plan: trip => (trip.id === 0 ? [before, after] : [after]) };
+
+      // Act
+      const simulation = runToEnd(new Simulation(map, [follower, leader], planner));
+
+      // Assert
+      const peak = Math.max(...simulation.congestionHistory().values());
       expect(peak * 100).toBeLessThanOrEqual(simulation.metrics().maxCongestion);
     });
   });
