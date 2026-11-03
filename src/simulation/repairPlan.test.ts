@@ -5,7 +5,7 @@ import { centralPlanner, MAX_DELAY } from './centralPlanner';
 import { demandRandom, generateDemand, Trip } from './demand';
 import { Simulation } from './engine';
 import { HOT_RATIO, repairPlan, replay } from './repairPlan';
-import { freeFlowPlanner, freeFlowSeconds, Planner } from './routing';
+import { balancedPlanner, freeFlowPlanner, freeFlowSeconds, Planner } from './routing';
 import { JAM_DENSITY, MIN_DENSITY_LENGTH } from './traffic';
 
 const demo = generateRoadMap({ rows: 18, cols: 24, entryCount: 12, exitCount: 4, blockSize: 7, seed: 47 });
@@ -125,4 +125,30 @@ describe('Feature: Repairing the central plan', () => {
       for (const trip of trips) expect(leadsToExit(repaired.plan(trip), trip)).toBe(true);
     });
   });
+});
+
+describe('Feature: Central scheduling without jams', () => {
+  for (const vehicles of [150, 300, 500]) {
+    describe(`When ${vehicles} vehicles use the network`, () => {
+      const trips = demand(vehicles);
+      const repaired = repairPlan(demo, trips, centralPlanner(demo, trips));
+
+      it('should never let a road reach its jam density', () => {
+        // Act
+        const metrics = finalMetrics(repaired, trips);
+
+        // Assert
+        expect(metrics.maxCongestion).toBeLessThan(100);
+      }, 120_000);
+
+      it('should keep vehicles on the road less time than the optimised scenario', () => {
+        // Act
+        const central = finalMetrics(repaired, trips);
+        const optimised = finalMetrics(balancedPlanner(demo, trips), trips);
+
+        // Assert
+        expect(central.avgTravelTime).toBeLessThan(optimised.avgTravelTime);
+      }, 120_000);
+    });
+  }
 });
