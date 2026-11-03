@@ -24,6 +24,7 @@ export class Simulation {
   maxCongestion = 0;
   readonly vehicles: Vehicle[];
   private readonly load = new Map<Road, number>();
+  private readonly history = new Map<string, number>();
   private next = 0; // index of the next vehicle waiting to depart
 
   constructor(scenario: Scenario, trips: Trip[], private readonly planner: Planner) {
@@ -41,6 +42,11 @@ export class Simulation {
   /** Vehicles currently driving on the map. */
   active(): Vehicle[] {
     return this.vehicles.slice(0, this.next).filter(v => v.arrival === undefined);
+  }
+
+  /** Highest share of the jam density each road has reached, keyed by road id. */
+  congestionHistory(): ReadonlyMap<string, number> {
+    return this.history;
   }
 
   step(dt: number): void {
@@ -86,7 +92,9 @@ export class Simulation {
   }
 
   private enter(road: Road): void {
-    this.load.set(road, (this.load.get(road) ?? 0) + 1);
+    const vehicles = (this.load.get(road) ?? 0) + 1;
+    this.load.set(road, vehicles);
+    this.history.set(road.id, Math.max(this.history.get(road.id) ?? 0, congestionRatio(vehicles, road.cost)));
   }
 
   private leave(road: Road): void {

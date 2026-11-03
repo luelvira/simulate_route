@@ -4,6 +4,7 @@ import { demandRandom, generateDemand, Trip } from './demand';
 import { positionOf, Simulation, Vehicle } from './engine';
 import { Road } from '../topology/types';
 import { balancedPlanner, freeFlowPlanner, freeFlowSeconds, Planner, unguidedPlanner } from './routing';
+import { congestionRatio } from './traffic';
 
 const map = generateRoadMap({ rows: 8, cols: 10, entryCount: 4, exitCount: 3, blockSize: 5, seed: 11 });
 const trips = generateDemand(map.entries, map.exits, 60, createRandom(5));
@@ -95,6 +96,47 @@ describe('Feature: Departure scheduling', () => {
       const [trip] = generateDemand(map.entries, map.exits, 1, createRandom(3), freeFlowSeconds(map));
 
       expect(runToEnd(new Simulation(map, [trip], freeFlowPlanner(map))).metrics().onTime).toBe(100);
+    });
+  });
+});
+
+describe('Feature: Congestion history for the map', () => {
+  const crowdOnSameRoute = (): Trip[] => Array.from({ length: 4 }, (_, id) =>
+    ({ id, entry: map.entries[0], exit: map.exits[0], departure: 0, target: 0 }));
+
+  describe('When no vehicle has driven', () => {
+    it('should report no road in the history', () => {
+      const simulation = new Simulation(map, [], freeFlowPlanner(map));
+
+      expect(simulation.congestionHistory().size).toBe(0);
+    });
+  });
+
+  describe('When several vehicles share the same road', () => {
+    it('should remember the peak share of the jam density that road reached', () => {
+      const planner = freeFlowPlanner(map);
+      const crowd = crowdOnSameRoute();
+      const first = planner.plan(crowd[0])[0].road;
+      const simulation = new Simulation(map, crowd, planner);
+
+      simulation.step(1);
+
+      expect(simulation.congestionHistory().get(first.id))
+        .toBeCloseTo(congestionRatio(crowd.length, first.cost), 6);
+    });
+  });
+
+  describe('When the road empties before the simulation ends', () => {
+    it('should keep the congestion that road reached until the end', () => {
+      const planner = freeFlowPlanner(map);
+      const crowd = crowdOnSameRoute();
+      const first = planner.plan(crowd[0])[0].road;
+      const peak = congestionRatio(crowd.length, first.cost);
+
+      const simulation = runToEnd(new Simulation(map, crowd, planner));
+
+      expect(simulation.done).toBe(true);
+      expect(simulation.congestionHistory().get(first.id)).toBeCloseTo(peak, 6);
     });
   });
 });
