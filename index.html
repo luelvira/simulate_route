@@ -140,306 +140,85 @@
       </main>
       <aside id="metrics-panel" class="metrics-panel" aria-label="Métricas de la simulación">
         <div class="metrics-scroll" tabindex="0" aria-label="Métricas desplazables">
-          <article class="metric-group" data-algorithm="base">
-            <h2 class="metric-group-title">Base</h2>
-            <div class="metric-grid">
-              <article class="metric">
-                <span class="metric-label">Tiempo medio</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="avg-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo total</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="total-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo máximo</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="max-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Completados</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="completed-vehicles">&mdash;</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Congestión máx.</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="max-congestion">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo perdido</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="lost-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Equidad</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="equity">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">A tiempo</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="on-time">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Retraso medio</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="avg-lateness">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Desplazamiento salida</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="departure-shift">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
+          <div class="metric-table" role="table" aria-label="Comparativa de métricas por escenario">
+            <div class="metric-row" role="row">
+              <span class="metric-corner" aria-hidden="true"></span>
+              <span class="metric-head" role="columnheader">Base</span>
+              <span class="metric-head" role="columnheader">A*</span>
+              <span class="metric-head" role="columnheader">Óptimo</span>
+              <span class="metric-head" role="columnheader">Central</span>
             </div>
-          </article>
-
-          <article class="metric-group" data-algorithm="astar">
-            <h2 class="metric-group-title">A*</h2>
-            <div class="metric-grid">
-              <article class="metric">
-                <span class="metric-label">Tiempo medio</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="avg-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo total</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="total-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo máximo</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="max-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Completados</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="completed-vehicles">&mdash;</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Congestión máx.</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="max-congestion">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo perdido</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="lost-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Equidad</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="equity">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">A tiempo</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="on-time">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Retraso medio</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="avg-lateness">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Desplazamiento salida</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="departure-shift">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
+            <div class="metric-row" role="row">
+              <span class="metric-label" role="rowheader">Tiempo medio (s)</span>
+              <span class="metric-value" role="cell" data-metric="avg-travel-time" data-algorithm="base">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="avg-travel-time" data-algorithm="astar">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="avg-travel-time" data-algorithm="optimized">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="avg-travel-time" data-algorithm="central">&mdash;</span>
             </div>
-          </article>
-
-          <article class="metric-group" data-algorithm="optimized">
-            <h2 class="metric-group-title">Óptimo</h2>
-            <div class="metric-grid">
-              <article class="metric">
-                <span class="metric-label">Tiempo medio</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="avg-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo total</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="total-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo máximo</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="max-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Completados</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="completed-vehicles">&mdash;</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Congestión máx.</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="max-congestion">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo perdido</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="lost-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Equidad</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="equity">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">A tiempo</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="on-time">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Retraso medio</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="avg-lateness">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Desplazamiento salida</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="departure-shift">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
+            <div class="metric-row" role="row">
+              <span class="metric-label" role="rowheader">Tiempo total (s)</span>
+              <span class="metric-value" role="cell" data-metric="total-travel-time" data-algorithm="base">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="total-travel-time" data-algorithm="astar">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="total-travel-time" data-algorithm="optimized">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="total-travel-time" data-algorithm="central">&mdash;</span>
             </div>
-          </article>
-
-          <article class="metric-group" data-algorithm="central">
-            <h2 class="metric-group-title">Central</h2>
-            <div class="metric-grid">
-              <article class="metric">
-                <span class="metric-label">Tiempo medio</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="avg-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo total</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="total-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo máximo</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="max-travel-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Completados</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="completed-vehicles">&mdash;</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Congestión máx.</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="max-congestion">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Tiempo perdido</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="lost-time">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Equidad</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="equity">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">A tiempo</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="on-time">&mdash;</span>
-                  <span class="metric-unit">%</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Retraso medio</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="avg-lateness">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
-              <article class="metric">
-                <span class="metric-label">Desplazamiento salida</span>
-                <span class="metric-body">
-                  <span class="metric-value" data-metric="departure-shift">&mdash;</span>
-                  <span class="metric-unit">s</span>
-                </span>
-              </article>
+            <div class="metric-row" role="row">
+              <span class="metric-label" role="rowheader">Tiempo máximo (s)</span>
+              <span class="metric-value" role="cell" data-metric="max-travel-time" data-algorithm="base">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="max-travel-time" data-algorithm="astar">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="max-travel-time" data-algorithm="optimized">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="max-travel-time" data-algorithm="central">&mdash;</span>
             </div>
-          </article>
-
+            <div class="metric-row" role="row">
+              <span class="metric-label" role="rowheader">Completados</span>
+              <span class="metric-value" role="cell" data-metric="completed-vehicles" data-algorithm="base">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="completed-vehicles" data-algorithm="astar">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="completed-vehicles" data-algorithm="optimized">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="completed-vehicles" data-algorithm="central">&mdash;</span>
+            </div>
+            <div class="metric-row" role="row">
+              <span class="metric-label" role="rowheader">Congestión máx. (%)</span>
+              <span class="metric-value" role="cell" data-metric="max-congestion" data-algorithm="base">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="max-congestion" data-algorithm="astar">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="max-congestion" data-algorithm="optimized">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="max-congestion" data-algorithm="central">&mdash;</span>
+            </div>
+            <div class="metric-row" role="row">
+              <span class="metric-label" role="rowheader">Tiempo perdido (s)</span>
+              <span class="metric-value" role="cell" data-metric="lost-time" data-algorithm="base">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="lost-time" data-algorithm="astar">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="lost-time" data-algorithm="optimized">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="lost-time" data-algorithm="central">&mdash;</span>
+            </div>
+            <div class="metric-row" role="row">
+              <span class="metric-label" role="rowheader">Equidad (%)</span>
+              <span class="metric-value" role="cell" data-metric="equity" data-algorithm="base">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="equity" data-algorithm="astar">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="equity" data-algorithm="optimized">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="equity" data-algorithm="central">&mdash;</span>
+            </div>
+            <div class="metric-row" role="row">
+              <span class="metric-label" role="rowheader">A tiempo (%)</span>
+              <span class="metric-value" role="cell" data-metric="on-time" data-algorithm="base">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="on-time" data-algorithm="astar">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="on-time" data-algorithm="optimized">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="on-time" data-algorithm="central">&mdash;</span>
+            </div>
+            <div class="metric-row" role="row">
+              <span class="metric-label" role="rowheader">Retraso medio (s)</span>
+              <span class="metric-value" role="cell" data-metric="avg-lateness" data-algorithm="base">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="avg-lateness" data-algorithm="astar">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="avg-lateness" data-algorithm="optimized">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="avg-lateness" data-algorithm="central">&mdash;</span>
+            </div>
+            <div class="metric-row" role="row">
+              <span class="metric-label" role="rowheader">Desplazamiento salida (s)</span>
+              <span class="metric-value" role="cell" data-metric="departure-shift" data-algorithm="base">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="departure-shift" data-algorithm="astar">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="departure-shift" data-algorithm="optimized">&mdash;</span>
+              <span class="metric-value" role="cell" data-metric="departure-shift" data-algorithm="central">&mdash;</span>
+            </div>
+          </div>
         </div>
       </aside>
     </div>

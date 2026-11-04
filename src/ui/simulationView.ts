@@ -1,6 +1,5 @@
 import { demandRandom, generateDemand, Trip } from '../simulation/demand';
 import { positionOf, Simulation } from '../simulation/engine';
-import { Metrics } from '../simulation/metrics';
 import { fromPlanTable } from '../simulation/planTable';
 import { PLAN_KEYS, PlanKey, PrecomputedPlans } from '../simulation/precomputePlans';
 import { freeFlowSeconds, HESITATION_FACTOR } from '../simulation/routing';
@@ -8,6 +7,7 @@ import { renderCongestion, renderRoadMap, renderVehicles } from '../topology/ren
 import { generateRoadMap } from '../topology/roadMap';
 import { Scenario } from '../topology/types';
 import { readConfig } from './configControls';
+import { showMetrics } from './metricsPanel';
 
 const STEP_SECONDS = 1;
 
@@ -27,25 +27,6 @@ function createRuns(map: Scenario, trips: Trip[], plans: PrecomputedPlans): Reco
 function formatClock(seconds: number): string {
   const total = Math.floor(seconds);
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-}
-
-function showMetrics(key: PlanKey, metrics: Metrics): void {
-  const group = document.querySelector(`.metric-group[data-algorithm="${key}"]`)!;
-  const values: Record<string, string> = {
-    'avg-travel-time': metrics.avgTravelTime.toFixed(0),
-    'total-travel-time': metrics.totalTravelTime.toFixed(0),
-    'max-travel-time': metrics.maxTravelTime.toFixed(0),
-    'completed-vehicles': `${metrics.completed}/${metrics.total}`,
-    'max-congestion': metrics.maxCongestion.toFixed(0),
-    'lost-time': metrics.lostTime.toFixed(0),
-    'equity': metrics.equity.toFixed(0),
-    'on-time': metrics.onTime.toFixed(0),
-    'avg-lateness': metrics.avgLateness.toFixed(0),
-    'departure-shift': metrics.avgDepartureShift.toFixed(0),
-  };
-  for (const [name, value] of Object.entries(values)) {
-    group.querySelector(`[data-metric="${name}"]`)!.textContent = value;
-  }
 }
 
 /**
