@@ -5,4 +5,6 @@ import { createApp } from './app';
 /** Starts the planning server; it also serves the built page from dist/. */
 const app = createApp();
 app.use('/*', serveStatic({ root: './dist' }));
-serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3000) });
+serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3000) }, info =>
+  console.log(`Listening on http://localhost:${info.port}`)
+);
