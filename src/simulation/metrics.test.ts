@@ -49,6 +49,14 @@ describe('Feature: Simulation metrics', () => {
     });
   });
 
+  describe('When vehicles drive exactly at free-flow time up to rounding errors', () => {
+    it('should report no lost time instead of a negative one', () => {
+      const metrics = computeMetrics([{ departure: 0, arrival: 0.3, idealTime: 0.1 + 0.2, trip: onTimeTrip }], 0);
+
+      expect(metrics.lostTime).toBe(0);
+    });
+  });
+
   describe('When no vehicle has arrived yet', () => {
     it('should report zero times instead of invalid numbers', () => {
       const metrics = computeMetrics([{ departure: 0, arrival: undefined, idealTime: 10, trip: onTimeTrip }], 0);

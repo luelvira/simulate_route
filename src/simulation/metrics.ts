@@ -42,7 +42,7 @@ export function computeMetrics(vehicles: VehicleRecord[], maxCongestionRatio: nu
     completed: done.length,
     total: vehicles.length,
     maxCongestion: maxCongestionRatio * 100,
-    lostTime: total - sum(done.map(v => v.idealTime)),
+    lostTime: Math.max(0, total - sum(done.map(v => v.idealTime))),
     equity: squares ? (sum(efficiency) ** 2 / (done.length * squares)) * 100 : 0,
     onTime: vehicles.length ? ((done.length - lateness.length) / vehicles.length) * 100 : 0,
     avgLateness: mean(lateness),
