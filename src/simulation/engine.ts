@@ -69,20 +69,29 @@ export class Simulation {
       this.history.set(road.id, Math.max(this.history.get(road.id) ?? 0, ratio));
     }
 
+    const factor = this.planner.speedFactor ?? 1;
+    const tilesPerStep = (road: Road): number => tilesPerSecond(speed.get(road)
+      ?? congestedSpeed(road.speed ?? MAX_SPEED, this.others(road), road.cost)) * factor;
     for (const vehicle of moving) {
-      const elapsed = tilesPerSecond(speed.get(vehicle.route[0].road)!) * (this.planner.speedFactor ?? 1) * dt;
-      vehicle.progress += elapsed;
-      while (vehicle.arrival === undefined && vehicle.progress >= vehicle.route[0].road.cost) {
+      // Time left in this step, carried over to the next road at that road's own speed.
+      let left = dt;
+      while (left > 0) {
         const [current, ...remaining] = vehicle.route;
-        vehicle.progress -= current.road.cost;
-        this.leave(current.road);
-        if (remaining.length === 0) {
-          vehicle.arrival = this.time + dt * (1 - vehicle.progress / elapsed);
-          vehicle.route = [];
+        const rate = tilesPerStep(current.road);
+        const toEnd = (current.road.cost - vehicle.progress) / rate;
+        if (toEnd > left) {
+          vehicle.progress += rate * left;
           break;
         }
+        left -= toEnd;
+        vehicle.progress = 0;
+        this.leave(current.road);
         vehicle.route = remaining;
-        this.enter(vehicle.route[0].road);
+        if (remaining.length === 0) {
+          vehicle.arrival = this.time + dt - left;
+          break;
+        }
+        this.enter(remaining[0].road);
       }
     }
     this.time += dt;

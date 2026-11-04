@@ -27,7 +27,7 @@ describe('Feature: Traffic simulation', () => {
     it('should never let a vehicle beat the free-flow travel time', () => {
       const simulation = runToEnd(new Simulation(map, trips, freeFlowPlanner(map)));
 
-      for (const v of simulation.vehicles) expect(v.arrival! - v.departure).toBeGreaterThanOrEqual(v.idealTime - 1);
+      for (const v of simulation.vehicles) expect(v.arrival! - v.departure).toBeGreaterThanOrEqual(v.idealTime - 1e-6);
     });
 
     it('should produce the same metrics when replayed with the same inputs', () => {
@@ -103,6 +103,22 @@ describe('Feature: Departure scheduling', () => {
     });
   });
 
+  describe('When a lone vehicle crosses roads with different speed limits on the default demo map', () => {
+    it('should take exactly its free-flow travel time and lose no time', () => {
+      // Arrange
+      const demo = generateRoadMap({ rows: 18, cols: 24, entryCount: 12, exitCount: 4, blockSize: 7, seed: 47 });
+      const [trip] = generateDemand(demo.entries, demo.exits, 1, demandRandom(47), freeFlowSeconds(demo));
+
+      // Act
+      const simulation = runToEnd(new Simulation(demo, [trip], freeFlowPlanner(demo)));
+
+      // Assert
+      const [vehicle] = simulation.vehicles;
+      expect(vehicle.arrival! - vehicle.departure).toBeCloseTo(vehicle.idealTime, 6);
+      expect(simulation.metrics().lostTime).toBeCloseTo(0, 6);
+    });
+  });
+
   describe('When a lone vehicle leaves at its nominal departure', () => {
     it('should reach its exit on time', () => {
       const [trip] = generateDemand(map.entries, map.exits, 1, createRandom(3), freeFlowSeconds(map));
@@ -153,7 +169,7 @@ describe('Feature: Congestion history for the map', () => {
   });
 
   describe('When a vehicle drives alone', () => {
-    it('should leave every road it drives on uncoloured', () => {
+    it('should record every road it drives on as used but not congested', () => {
       // Arrange
       const planner = freeFlowPlanner(map);
       const trip: Trip = { id: 0, entry: map.entries[0], exit: map.exits[0], departure: 0, target: 0 };
@@ -162,7 +178,7 @@ describe('Feature: Congestion history for the map', () => {
       const simulation = runToEnd(new Simulation(map, [trip], planner));
 
       // Assert
-      for (const ratio of simulation.congestionHistory().values()) expect(ratio).toBe(0);
+      for (const { road } of planner.plan(trip)) expect(simulation.congestionHistory().get(road.id)).toBe(0);
     });
   });
 
