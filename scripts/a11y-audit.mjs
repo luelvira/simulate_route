@@ -5,14 +5,14 @@ import { preview } from 'vite';
 
 const require = createRequire(import.meta.url);
 const axeSource = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
-const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+const AUDIT_TAGS = ['best-practice', 'wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 async function audit(page, label) {
   await page.addScriptTag({ content: axeSource });
   const results = await page.evaluate(async (tags) => {
     // eslint-disable-next-line no-undef
     return axe.run(document, { runOnly: { type: 'tag', values: tags } });
-  }, WCAG_TAGS);
+  }, AUDIT_TAGS);
 
   console.log(`\n[${label}] ${results.violations.length} violation(s)`);
   for (const violation of results.violations) {

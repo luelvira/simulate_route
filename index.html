@@ -14,29 +14,36 @@
       <p class="disclaimer">Simulación educativa con datos sintéticos inspirada en un mapa de carreteras. No representa la infraestructura real ni sirve para modelar el tránsito real.</p>
     </header>
 
-    <!-- Simulation toolbar -->
-    <section class="controls mx-md" role="toolbar" aria-label="Acciones de simulación">
-      <button type="submit" form="scenario-form" class="btn btn-primary">Iniciar</button>
-      <button type="button" id="btn-pause" class="btn">Pausar</button>
-      <button type="button" id="btn-restart" class="btn">Reiniciar</button>
-      <button type="reset" form="scenario-form" class="btn btn-ghost">Restablecer</button>
-      <label>Velocidad
-        <select id="sim-speed" aria-label="Velocidad de simulación">
-          <option value="15">x15</option>
-          <option value="60" selected>x60</option>
-          <option value="180">x180</option>
-        </select>
-      </label>
-      <label>Animar
-        <select id="animated-scenario" aria-label="Escenario animado en el mapa">
-          <option value="base">Base</option>
-          <option value="astar" selected>A*</option>
-          <option value="optimized">Optimizado</option>
-          <option value="central">Central</option>
-        </select>
-      </label>
-      <output id="sim-clock" class="clock" aria-label="Tiempo simulado">00:00</output>
-    </section>
+    <!-- Simulation toolbar and scenario panel, framed as one operation region -->
+    <section class="sim-panel" aria-label="Operación de la simulación">
+      <div class="controls mx-md" role="toolbar" aria-label="Acciones de simulación">
+        <button type="submit" form="scenario-form" class="btn btn-primary">Iniciar</button>
+        <button type="button" id="btn-pause" class="btn">Pausar</button>
+        <button type="button" id="btn-restart" class="btn">Reiniciar</button>
+        <button type="reset" form="scenario-form" class="btn btn-ghost">Restablecer</button>
+        <label>Velocidad
+          <select id="sim-speed" aria-label="Velocidad de simulación">
+            <option value="15">x15</option>
+            <option value="60" selected>x60</option>
+            <option value="180">x180</option>
+          </select>
+        </label>
+        <label>Animar
+          <select id="animated-scenario" aria-label="Escenario animado en el mapa">
+            <option value="base">Base</option>
+            <option value="astar" selected>A*</option>
+            <option value="optimized">Optimizado</option>
+            <option value="central">Central</option>
+          </select>
+        </label>
+        <label>Tema
+          <select id="theme-picker" aria-label="Tema de la interfaz">
+            <option value="dark" selected>Oscuro</option>
+            <option value="light">Claro</option>
+          </select>
+        </label>
+        <output id="sim-clock" class="clock" aria-label="Tiempo simulado">00:00</output>
+      </div>
 
     <!-- Scenario configuration panel -->
     <section class="admin-host mx-md">
@@ -55,7 +62,7 @@
         </span>
       </div>
 
-      <article id="controls" class="admin is-open" aria-label="Controles de la simulación">
+      <article id="controls" class="admin is-open" role="region" aria-label="Controles de la simulación">
         <form id="scenario-form" autocomplete="off" novalidate>
           <fieldset class="field-group items-4">
             <legend>Malla</legend>
@@ -116,6 +123,7 @@
         </form>
       </article>
     </section>
+    </section>
 
     <!-- Map and metrics workspace -->
     <div class="workspace">
@@ -130,7 +138,6 @@
           </span>
         </div>
       </main>
-
       <aside id="metrics-panel" class="metrics-panel" aria-label="Métricas de la simulación">
         <div class="metrics-scroll" tabindex="0" aria-label="Métricas desplazables">
           <article class="metric-group" data-algorithm="base">
