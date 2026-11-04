@@ -1,6 +1,6 @@
 import { demandRandom, generateDemand, Trip } from '../simulation/demand';
 import { positionOf, Simulation } from '../simulation/engine';
-import { fromPlanTable } from '../simulation/planTable';
+import { fromPlanTable, PlannedTrip, PlanTable } from '../simulation/planTable';
 import { PLAN_KEYS, PlanKey, PrecomputedPlans } from '../simulation/precomputePlans';
 import { freeFlowSeconds, HESITATION_FACTOR } from '../simulation/routing';
 import { renderCongestion, renderRoadMap, renderVehicles } from '../topology/render';
@@ -8,6 +8,10 @@ import { generateRoadMap } from '../topology/roadMap';
 import { Scenario } from '../topology/types';
 import { readConfig } from './configControls';
 import { showMetrics } from './metricsPanel';
+
+import { cache } from './cache';
+
+const localStorageCache = cache(localStorage);
 
 const STEP_SECONDS = 1;
 
@@ -100,12 +104,21 @@ export function initSimulation(form: HTMLFormElement): void {
     clock.value = 'Calculando...';
     const controller = new AbortController();
     planning = controller;
+
+    const loadedPlans = localStorageCache.load(config);
+    if (loadedPlans) {
+      const plans = Object.fromEntries(PLAN_KEYS.map((key: PlanKey): [PlanKey, Map<number, PlannedTrip>] => [key, new Map(loadedPlans[key])])) as PrecomputedPlans;
+      begin({ map, trips, plans, runs: createRuns(map, trips, plans) });
+      return;
+    }
+
     fetch('/api/plans', { method: 'POST', body: new FormData(form), signal: controller.signal })
       .then(async (response) => {
         const body = await response.json();
         if (!response.ok) throw new Error(body.error);
         const plans = Object.fromEntries(PLAN_KEYS.map(key => [key, new Map(body[key])])) as PrecomputedPlans;
         begin({ map, trips, plans, runs: createRuns(map, trips, plans) });
+        localStorageCache.set(config, plans);
       })
       .catch((error: Error) => {
         if (error.name !== 'AbortError') app.textContent = `No se pueden calcular las rutas: ${error.message}`;

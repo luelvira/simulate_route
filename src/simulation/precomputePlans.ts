@@ -2,7 +2,7 @@ import { generateRoadMap } from '../topology/roadMap';
 import type { SimulationConfig } from '../ui/configStorage';
 import { centralPlanner } from './centralPlanner';
 import { demandRandom, generateDemand } from './demand';
-import { PlanTable, toPlanTable } from './planTable';
+import { PlannedTrip, PlanTable, toPlanTable } from './planTable';
 import { repairPlan } from './repairPlan';
 import { balancedPlanner, freeFlowPlanner, freeFlowSeconds, Planner, unguidedPlanner } from './routing';
 
@@ -30,4 +30,25 @@ export function computePlan(config: SimulationConfig, key: PlanKey): PlanTable {
     central: () => repairPlan(map, trips, centralPlanner(map, trips)),
   };
   return toPlanTable(planners[key](), trips);
+}
+
+
+export function serialize(plans: PrecomputedPlans) {
+  const data: [PlanKey, PlanTable][] = Object.entries(plans) as [PlanKey, PlanTable][];
+  const dataToSerialize: {[k in PlanKey]: [number, PlannedTrip][]} = {} as {[k in PlanKey]: [number, PlannedTrip][]};
+  for (const [key, val] of data) {
+    const ent = (Array.from(val.entries()));
+    dataToSerialize[key] = ent;
+  }
+  return JSON.stringify(dataToSerialize);
+}
+
+
+export function desearilize(plans: string): PrecomputedPlans {
+  const dataSerialize = JSON.parse(plans) as {[k in PlanKey]: [number, PlannedTrip][]};
+  const dataEntries = Object.entries(dataSerialize) as  unknown as [PlanKey, [number, PlannedTrip][]][];
+  return dataEntries.reduce((acc, [key, val]) => {
+    acc[key] = new Map(val);
+    return acc;
+  }, {} as {[k in PlanKey]: PlanTable});
 }
