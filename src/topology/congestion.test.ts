@@ -3,9 +3,18 @@ import { congestionStyle } from './congestion';
 
 describe('Feature: Congestion colours on the map', () => {
 
-  describe('When a road is empty', () => {
+  describe('When no vehicle has driven on a road', () => {
     it('should leave the asphalt untouched', () => {
-      expect(congestionStyle(0).opacity).toBe(0);
+      expect(congestionStyle(undefined).opacity).toBe(0);
+    });
+  });
+
+  describe('When a vehicle has driven on a road without sharing it', () => {
+    it('should paint the road green and visible', () => {
+      const style = congestionStyle(0);
+
+      expect(style.color).toBe('rgb(67, 160, 71)');
+      expect(style.opacity).toBeGreaterThan(0);
     });
   });
 

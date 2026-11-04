@@ -23,10 +23,12 @@ const mix = (from: Rgb, to: Rgb, t: number): Rgb =>
 /**
  * Maps the share of a road's jam density in use to a traffic-light colour:
  * green when the first vehicles appear, yellow halfway, orange when it is
- * nearly full and red at a standstill. Empty roads stay transparent so the
- * asphalt and its markings remain visible.
+ * nearly full and red at a standstill; a road driven without sharing it
+ * (ratio 0) is green too. Roads no vehicle has used (undefined) stay
+ * transparent so the asphalt and its markings remain visible.
  */
-export function congestionStyle(ratio: number): CongestionStyle {
+export function congestionStyle(ratio: number | undefined): CongestionStyle {
+  if (ratio === undefined) return { color: 'transparent', opacity: 0 };
   const value = clamp(ratio);
   const upper = Math.max(0, STOPS.findIndex(stop => stop.at >= value));
   const to = STOPS[upper];
@@ -35,6 +37,6 @@ export function congestionStyle(ratio: number): CongestionStyle {
   const [r, g, b] = mix(from.color, to.color, t);
   return {
     color: `rgb(${r}, ${g}, ${b})`,
-    opacity: value === 0 ? 0 : 0.45 + 0.5 * value,
+    opacity: 0.45 + 0.5 * value,
   };
 }

@@ -49,12 +49,12 @@ export function renderRoadMap(container: HTMLElement, scenario: Scenario): void 
     .append('title').text(n => `${n.id} · ${n.kind}`);
 }
 
-/** Paints the roads in use with their congestion colour and fades the empty ones back to asphalt. */
+/** Paints the roads vehicles have used with their congestion colour and leaves the unused ones as asphalt. */
 export function renderCongestion(container: HTMLElement, congestion: ReadonlyMap<string, number>): void {
   d3.select(container).select<SVGGElement>('g.congestion')
     .selectAll<SVGPathElement, Road>('path')
-    .attr('stroke', road => congestionStyle(congestion.get(road.id) ?? 0).color)
-    .attr('stroke-opacity', road => congestionStyle(congestion.get(road.id) ?? 0).opacity);
+    .attr('stroke', road => congestionStyle(congestion.get(road.id)).color)
+    .attr('stroke-opacity', road => congestionStyle(congestion.get(road.id)).opacity);
 }
 
 /** Draws (or moves) one dot per vehicle at its tile position; positions are keyed by vehicle id. */
