@@ -36,12 +36,6 @@
             <option value="central">Central</option>
           </select>
         </label>
-        <label>Tema
-          <select id="theme-picker" aria-label="Tema de la interfaz">
-            <option value="dark" selected>Oscuro</option>
-            <option value="light">Claro</option>
-          </select>
-        </label>
         <output id="sim-clock" class="clock" aria-label="Tiempo simulado">00:00</output>
       </div>
 
@@ -50,6 +44,12 @@
       <button id="toggle-controls" type="button" class="bar-toggle is-active" aria-controls="controls" aria-expanded="true">Controles</button>
 
       <div class="controls-corner">
+        <span>
+          <button id="theme-toggle" type="button" class="btn btn-ghost btn-icon" aria-pressed="false" aria-label="Cambiar a tema claro">
+            <i data-lucide="moon" class="icon-dark" aria-hidden="true"></i>
+            <i data-lucide="sun" class="icon-light" aria-hidden="true"></i>
+          </button>
+        </span>
         <span>
           <button id="btn-save-config" type="button" class="btn btn-ghost btn-icon" aria-label="Guardar configuración" title="Guardar configuración">
             <i data-lucide="save" aria-hidden="true"></i>

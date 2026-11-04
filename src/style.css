@@ -13,8 +13,25 @@
   --ink-dim: #8d938b;
   --accent: #8fbf6a;
   --accent-ink: #16191d;
+  --surface-veil: rgb(28 32 37 / 0.85);
   --radius: 0.625rem;
   --radius-sm: 0.375rem;
+}
+
+/* Light theme (selectable in the toolbar): same color roles, high contrast. */
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f2f4f0;
+  --surface: #ffffff;
+  --border: #c9cfc7;
+  --border-soft: #dde2da;
+  --border-strong: #525c52;
+  --ink: #161a15;
+  --ink-dim: #454e44;
+  --accent: #2e7d32;
+  --accent-ink: #ffffff;
+  --surface-veil: rgb(255 255 255 / 0.88);
 }
 
 /* ==========================================================================
@@ -108,6 +125,20 @@ select {
 .btn-icon svg {
   width: 1.125rem;
   height: 1.125rem;
+}
+
+/* Theme toggle: the moon and sun trade places through the is-light class. */
+
+#theme-toggle .icon-light {
+  display: none;
+}
+
+#theme-toggle.is-light .icon-dark {
+  display: none;
+}
+
+#theme-toggle.is-light .icon-light {
+  display: block;
 }
 
 .bar-toggle {
@@ -219,7 +250,7 @@ select {
   grid-template-columns: subgrid;
   align-items: center;
   gap: 0.5rem;
-  grid-column: -3 / span 2;
+  grid-column: -4 / span 3;
 }
 
 .controls-corner span {
@@ -368,7 +399,7 @@ select {
   padding: 0.5rem 0.625rem;
   border: 0.0625rem solid var(--border-soft);
   border-radius: var(--radius-sm);
-  background: rgb(28 32 37 / 0.85);
+  background: var(--surface-veil);
   pointer-events: none;
 }
 
@@ -541,6 +572,17 @@ html.is-presentation {
   --ink-dim: #c9cec6;
   --accent: #b6e08a;
   --border-strong: #9aa3ab;
+}
+
+/* Presentation keeps the same token roles for the light theme, tightened
+   for contrast on a bright background. */
+
+html.is-presentation[data-theme="light"] {
+  --ink: #0e110d;
+  --ink-dim: #2c332b;
+  --accent: #1b5e20;
+  --border-strong: #3c463c;
+  --surface-veil: rgb(255 255 255 / 0.9);
 }
 
 @media (min-width: 56.25em) {
